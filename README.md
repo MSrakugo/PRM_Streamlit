@@ -44,10 +44,9 @@ To use this application, follow these steps:
 ```bash
 git clone https://github.com/MSrakugo/PRM_Streamlit
 ```
-**You can also download the ZIP file. (ZIPファイルのダウンロードでも可)**
+* **You can also download the ZIP file. (ZIPファイルのダウンロードでも可)**
 
-After downloading, use Terminal to navigate to the folder
-ダウンロード後、Terminalでフォルダまで移動
+After downloading, use Terminal to navigate to the folder（ダウンロード後、Terminalでフォルダまで移動）
 ```bash
 cd [Your Repository Directory]
 ```
