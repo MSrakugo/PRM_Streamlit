@@ -95,7 +95,7 @@ To use this application, follow these steps:
       streamlit run PRM_App_Main.py
       ```
 
-もし上記の内容で分からない点があれば、お気軽にTwitter @mtsn_stsh またはメールでお問い合わせください。
+もし上記の内容で分からない点があれば、お気軽にX(Twitter) @mtsn_stsh またはメールでお問い合わせください。
 
 ## Author
 
