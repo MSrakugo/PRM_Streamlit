@@ -294,6 +294,11 @@ def predict_model(elem, X_use, y,  path_all_share, path_figure_all, path_all_mod
     pred_data["predict"] = pred_y
     pred_data["predict_dist"] = pred_y_dist_log
     ##########PMの値をかけて，orderをppmに直して行く
+    #normalizeのためのデータをread
+    for_normalize_data = pd.read_excel("../List/Primitive_Mantle _ C1 Chondrite.xlsx", index_col=0)
+    for_normalize_data = for_normalize_data.drop(columns=['Unnamed: 1']).T
+    #一部のデータはErrorになるので，先にdrop
+    for_normalize_data = for_normalize_data.drop(['F', 'In', 'Cl', 'Ge'])
     try:
         PM_value = for_normalize_data[elem].values
         pred_data["Mobile_amount"] = (y_elem - pred_y)*PM_value
