@@ -27,6 +27,15 @@ Key words:
 * **User-Friendly Interface**: The application is intuitively designed, ensuring ease of use for individuals with different levels of technical expertise.
 
 ## Requirement
+Before running the application, ensure you have the following requirements installed:
+
+- Python 3.x
+- Streamlit
+- LightGBM
+- Other dependencies listed in `requirements.txt`
+
+Note: Python 3.x and pip should be installed on your system. If not, you can download and install them from [Python's official website](https://www.python.org/downloads/).
+
 
 ## How to use
 
