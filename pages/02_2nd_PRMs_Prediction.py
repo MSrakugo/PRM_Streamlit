@@ -19,11 +19,11 @@ import openpyxl
 
 import plotly.express as px
 import matplotlib.pyplot as plt
+import pickle
 
 import PRM_liblary as prm
 import PRM_Predict_liblary as prm_predict
 import Library_preprocessing as preprocessing
-import Library_model_construction as construction_PRM
 import PRM_App_Library as App_Library
 
 class Models:
@@ -84,8 +84,8 @@ uploaded_file_Setting = st.sidebar.expander("Input file Setting")
 transform_T = uploaded_file_Setting.checkbox("Rotate")
 if transform_T:
     st.write('ON')
-index_col = uploaded_file_Setting.slider('Input index_columns number', 0, 100, 0)
-header = uploaded_file_Setting.slider('Input header number', 0, 100, 0)
+index_col = uploaded_file_Setting.slider('Input index_columns number', 0, 10, 0)
+header = uploaded_file_Setting.slider('Input header number', 0, 10, 0)
 # File setting
 ###### Dataが存在しているかを判定
 if uploaded_file is not None:

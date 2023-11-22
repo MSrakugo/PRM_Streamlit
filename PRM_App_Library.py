@@ -21,4 +21,4 @@ def page_footer():
     st.write("---")
     st.caption("Press release in Japanese: https://www.tohoku.ac.jp/japanese/2022/02/press20220210-01-machine.html")
     st.caption("Auther: Satoshi Matsuno (Tohoku univ., Japan)")
-    st.caption("If you find any errors, please point them out to us through Email (satoshi.matsuno.p2@dc.tohoku.ac.jp) or Github (https://github.com/MSrakugo/PRM_application)")
+    st.caption("If you find any errors, please point them out to us through Email (satoshi.matsuno.p2@dc.tohoku.ac.jp) or Github (https://github.com/MSrakugo/)")
