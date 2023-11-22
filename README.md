@@ -40,37 +40,6 @@ Note: Python 3.x and pip should be installed on your system.
 
 To use this application, follow these steps:
 
-1. **Download the ZIP file (ZIPファイルのダウンロード)**
-  After downloading, use Terminal to navigate to the folder（ダウンロード後、Terminalでフォルダまで移動）
-
-  ```bash
-  cd [Your Repository Directory]
-  ```
-  * **NOTE**: Clone the Repository will also work
-  ```bash
-  git clone https://github.com/MSrakugo/PRM_Streamlit
-  ```
-
-
-2. **(Optional)Build a virtual space in Python（Pythonの仮想空間の構築）**
-
-
-
-3. **Install Dependencies（ライブラリのインストール）**
-```bash
-pip install -r requirements.txt
-```
-
-4. **Run the Application**
-```bash
-streamlit run PRM_App_Main.py
-```
-
-
-## How to use
-
-To use this application, follow these steps:
-
 1. **Download the ZIP file or Clone the Repository**
     - To download as ZIP, visit [GitHub repository](https://github.com/MSrakugo/PRM_Streamlit), click on 'Code' and then 'Download ZIP'. After downloading, extract the ZIP file.
       - Alternatively, clone the repository using:
@@ -104,9 +73,34 @@ To use this application, follow these steps:
     - The application will start running locally on your machine. Open your web browser and navigate to the local URL provided (usually `http://localhost:8501`).
 
 
+## 使い方（日本語版は簡略版です）
+1. **ZIPファイルのダウンロード**
+    - ファイルを展開した後、**ターミナルを使用してフォルダに移動します**：
+      ```bash
+      cd [Your Repository Directory]
+      ```
+
+2. **（Optional）Pythonで仮想環境を構築**
+    - 省略。Pythonを普段から使用している方は仮想環境の構築を推奨します。
+
+3. **依存関係のインストール**
+    - 必要なライブラリをインストールするために、以下のコマンドを実行します：
+      ```bash
+      pip install -r requirements.txt
+      ```
+
+4. **アプリケーションの実行**
+    - アプリケーションを起動するには、次のコマンドを実行します：
+      ```bash
+      streamlit run PRM_App_Main.py
+      ```
+
+もし上記の内容で分からない点があれば、お気軽にTwitter @mtsn_stsh またはメールでお問い合わせください。
+
 ## Author
 
 Satoshi Matsuno, Tohoku university, Japan
+
 松野哲士 東北大学環境科学研究科
 
 Contact: satoshi.matsuno.p2@dc.tohoku.ac.jp
