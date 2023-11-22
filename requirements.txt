@@ -4,7 +4,7 @@ ngboost==0.3.6
 optuna==2.10.0
 matplotlib==3.7.1
 seaborn
-scikit_learn==0.24.2
+scikit_learn
 numpy
 openpyxl
 pandas
