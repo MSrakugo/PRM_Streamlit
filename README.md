@@ -2,6 +2,7 @@
 
 ## Overview
 This project introduces a **Graphical User Interface (GUI) application for Protolith Reconstruction Models (PRMs)**, developed in Python and Streamlit. It employs **machine learning algorithms** to reconstruct the protolith composition and quantify element transfer.
+
 This application not only allows users to **easily handle PRMs** through a user-friendly GUI but also offers **tools for the normalization and visualization of compositional data** through simple file drop functionality.
 
 ## Paper
