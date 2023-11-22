@@ -42,7 +42,7 @@ To use this application, follow these steps:
 
 1. **Download the ZIP file (ZIPファイルのダウンロード)**
   >After downloading, use Terminal to navigate to the folder（ダウンロード後、Terminalでフォルダまで移動）
-  
+
   ```bash
   cd [Your Repository Directory]
   ```
@@ -52,16 +52,16 @@ To use this application, follow these steps:
   ```
 
 2. **(Optional)Build a virtual space in Python（Pythonの仮想空間の構築）**
-
+  >
 
 Install Dependencies（ライブラリのインストール）**
 
-2. **Install Dependencies（ライブラリのインストール）**
+3. **Install Dependencies（ライブラリのインストール）**
 ```bash
 pip install -r requirements.txt
 ```
 
-3. **Run the Application**
+4. **Run the Application**
 ```bash
 streamlit run PRM_App_Main.py
 ```
@@ -70,6 +70,7 @@ streamlit run PRM_App_Main.py
 
 ## Author
 
-Satoshi Matsuno (松野哲士)
+Satoshi Matsuno, Tohoku university, Japan
+松野哲士 東北大学環境科学研究科
 
 Contact: satoshi.matsuno.p2@dc.tohoku.ac.jp
