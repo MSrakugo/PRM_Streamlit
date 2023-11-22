@@ -16,7 +16,7 @@ def page_footer():
     st.write("---")
     st.subheader("Cite articles")
     st.markdown("1. Matsuno, S., Uno, M., Okamoto, A. Tsuchiya, N. Machine-learning techniques for quantifying the protolith composition and mass transfer history of metabasalt. Sci Rep 12, 1385 (2022). https://doi.org/10.1038/s41598-022-05109-x")
-    st.markdown("2. Matsuno, S. Graphical interface to construct and apply Machine-learning based Protolith Reconstruction Models. (2023). ")
+    st.markdown("2. Matsuno, S. Graphical interface to construct and apply Machine-learning based Protolith Reconstruction Models (PRMs) (v1.1). Zenodo (2023). https://doi.org/10.5281/zenodo.10183974")
     st.write("---")
     st.caption("Press release in Japanese: https://www.tohoku.ac.jp/japanese/2022/02/press20220210-01-machine.html")
     st.caption("Auther: Satoshi Matsuno (Tohoku univ., Japan)")
