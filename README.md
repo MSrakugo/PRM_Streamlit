@@ -40,10 +40,20 @@ Note: Python 3.x and pip should be installed on your system.
 
 To use this application, follow these steps:
 
+1. **Clone the Repository**　(ファイルのダウンロード:ZIPでも可)
+
+```bash
+git clone https://github.com/MSrakugo/PRM_Streamlit
+cd [Your Repository Directory]
+```
+
+2.
+
 1. **Clone the Repository**　
-   ```bash
-   git clone https://github.com/MSrakugo/PRM_Streamlit
-   cd [Your Repository Directory]
+```bash
+git clone https://github.com/MSrakugo/PRM_Streamlit
+cd [Your Repository Directory]
+
 
 2. **Install Dependencies**
   ```bash
