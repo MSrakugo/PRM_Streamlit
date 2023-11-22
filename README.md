@@ -41,8 +41,8 @@ Note: Python 3.x and pip should be installed on your system.
 To use this application, follow these steps:
 
 1. **Download the ZIP file (ZIPファイルのダウンロード)**
-
-  After downloading, use Terminal to navigate to the folder（ダウンロード後、Terminalでフォルダまで移動）
+  >After downloading, use Terminal to navigate to the folder（ダウンロード後、Terminalでフォルダまで移動）
+  
   ```bash
   cd [Your Repository Directory]
   ```
@@ -51,7 +51,12 @@ To use this application, follow these steps:
   git clone https://github.com/MSrakugo/PRM_Streamlit
   ```
 
-2. **Install Dependencies**
+2. **(Optional)Build a virtual space in Python（Pythonの仮想空間の構築）**
+
+
+Install Dependencies（ライブラリのインストール）**
+
+2. **Install Dependencies（ライブラリのインストール）**
 ```bash
 pip install -r requirements.txt
 ```
