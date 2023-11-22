@@ -42,8 +42,14 @@ To use this application, follow these steps:
 
 1. **Clone the Repository**　
    ```bash
-   git clone [Your Repository URL]
+   git clone https://github.com/MSrakugo/PRM_Streamlit
    cd [Your Repository Directory]
+
+2. **Install Dependencies**
+  ```bash
+  git clone https://github.com/MSrakugo/PRM_Streamlit
+  cd [Your Repository Directory]
+
 
 
 
