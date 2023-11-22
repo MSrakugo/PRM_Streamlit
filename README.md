@@ -5,7 +5,7 @@ This project has developed a **Graphical User Interface (GUI) application for Pr
 
 This application not only allows users to **easily handle PRMs** through a user-friendly GUI but also offers **tools for the normalization and visualization of compositional data** through simple file drop functionality.
 
-このプロジェクトでは、PythonとStreamlitで開発された**原岩組成復元モデル（PRMs）用のグラフィカルユーザーインターフェース（GUI）アプリケーション**を開発しました。PRMsは、機械学習アルゴリズムを利用して、個々の試料に対して、原岩（出発物質）の組成を元素移動を被った変質/変成岩（生成物質）の組成から推定し、**元素移動を定量的に推定** することが可能です。
+このプロジェクトでは、PythonとStreamlitを用いて**原岩組成復元モデル（PRMs）用のグラフィカルユーザーインターフェース（GUI）アプリケーション**を開発しました。PRMsは、機械学習アルゴリズムを利用して、個々の試料に対して、原岩（出発物質）の組成を元素移動を被った変質/変成岩（生成物質）の組成から推定し、**元素移動を定量的に推定** することが可能です。
 
 このアプリケーションは、**ユーザーフレンドリーなGUI** を通じてPRMsを簡単に扱うことができるだけでなく、**組成データの正規化と可視化のためのツール** も提供します。これらのツールは、シンプルな**ファイルドロップ機能**を通じて利用可能です。
 
@@ -21,7 +21,7 @@ Key words: **Geochemistry, Fluid-rock interaction, Element transfer, Quantitativ
 ## Features
 * **Protolith Reconstruction Models (PRMs)**: Accurately estimate the protolith composition from a limited number of input elements of altered or metamorphosed samples. The default model focuses on basalt trace-element compositions.
   * These default models are developed using LightGBM algorithms and are trained with datasets encompassing various types of basalts, including mid-ocean ridge basalts, ocean-island basalts, and volcanic arc basalts.
-  * I plan to enhance the application soon to allow for the creation of models using customized datasets tailored to specific research needs.
+  * In the near future, I plan to update this application to enable model construction with your customized datasets.
 * **User-Friendly Interface**: The application is intuitively designed, ensuring ease of use for individuals with different levels of technical expertise.
 
 ## Requirement
@@ -31,4 +31,5 @@ Key words: **Geochemistry, Fluid-rock interaction, Element transfer, Quantitativ
 ## Author
 
 Satoshi Matsuno (松野哲士)
+
 Contact: satoshi.matsuno.p2@dc.tohoku.ac.jp
