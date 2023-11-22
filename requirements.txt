@@ -1,0 +1,12 @@
+lightgbm==3.2.1
+matplotlib==3.7.1
+ngboost==0.3.6
+numpy
+openpyxl
+optuna==2.10.0
+pandas
+plotly==5.5.0
+scikit_learn==0.24.2
+seaborn
+streamlit==1.12.0
+altair<5

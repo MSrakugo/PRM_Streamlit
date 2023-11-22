@@ -1,0 +1,31 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+File: PRM_Application_Main
+Begin: Tue Mar  1 23:06:08 2022
+Final update: 2023/11/21
+
+Author: 松野哲士 (Satoshi Matsuno), Tohoku university, Japan
+Contact: satoshi.matsuno.p2@dc.tohoku.ac.jp
+Citation: Matsuno, S., Uno, M., Okamoto, A. Tsuchiya, N. Machine-learning techniques for quantifying the protolith composition and mass transfer history of metabasalt. Sci Rep 12, 1385 (2022).
+App Citation: .
+"""
+
+import streamlit as st
+import PRM_App_Library as App_Library
+
+
+#################################################################################### Main
+st.header("Protolith reconstruction model (PRM)")
+st.markdown("This is a **GUI interface** for Protolith Reconstruction Models.")
+st.markdown("You can **construct PRMs** and **predict protolith composition** from alterd/metamorphosed rocks by yourself")
+
+st.markdown('> **1st step**   : (Optional) To **construct** PRMs by your suitable data')
+st.markdown('> **2nd step**   : **Read** your compositional data and **Run** PRMs')
+
+# PRMsの解説
+
+#################################################################################### Main
+
+# footer
+App_Library.page_footer()

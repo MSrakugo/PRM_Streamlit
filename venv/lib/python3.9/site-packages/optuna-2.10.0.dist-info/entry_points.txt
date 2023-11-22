@@ -1,0 +1,17 @@
+[console_scripts]
+optuna = optuna.cli:main
+
+[optuna.command]
+ask = optuna.cli:_Ask
+best-trial = optuna.cli:_BestTrial
+best-trials = optuna.cli:_BestTrials
+create-study = optuna.cli:_CreateStudy
+dashboard = optuna.cli:_Dashboard
+delete-study = optuna.cli:_DeleteStudy
+storage upgrade = optuna.cli:_StorageUpgrade
+studies = optuna.cli:_Studies
+study optimize = optuna.cli:_StudyOptimize
+study set-user-attr = optuna.cli:_StudySetUserAttribute
+tell = optuna.cli:_Tell
+trials = optuna.cli:_Trials
+
