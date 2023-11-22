@@ -1,8 +1,9 @@
-# PRM_Application
+# GUI Application for Protolith Reconstruction Models
+PRM_Application
 
 ## Overview
-This project presents a **Graphical User Interface (GUI) application** developed in Python and Streamlit, based on the research paper "Machine-learning techniques for quantifying the protolith composition and mass transfer history of metabasalt" by Satoshi Matsuno, Masaoki Uno, Atsushi Okamoto, and Noriyoshi Tsuchiya.
-Our tool utilizes **machine learning algorithms** to reconstruct the protolith composition and quantify element transfer, espesially for metabasalt.
+This project presents a **Graphical User Interface (GUI) application for Protolith Reconstruction Models (PRMs)** developed in Python and Streamlit, handling **machine learning algorithms** to reconstruct the protolith composition and quantify element transfer.
+このアプリケーションでは、ユーザーフレンドリーなGUIからPRMsを扱うことが可能であるだけでなく、ファイルのドロップで簡単に組成データのノーマライズ・可視化のツールも提供する。
 
 ## Paper
 This methodology is based on
@@ -15,9 +16,6 @@ Key words: **Geochemistry, Fluid-rock interaction, Element transfer, Quantitativ
   * The default models constructed based on the algorithms of LightGBM learned the datasets for various types of basalts, including mid-ocean ridge, ocean-island, and volcanic arc basalts.
   * In near future, we update the this application for constructing models by your suitable datasets.
 * **User-Friendly Interface**: Designed to be intuitive and accessible for users with varying levels of technical expertise.
-
-
-
 
 ## Requirement
 
