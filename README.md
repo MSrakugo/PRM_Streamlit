@@ -1,6 +1,6 @@
 # GUI Application for Protolith Reconstruction Models (PRMs)
-
-https://github.com/MSrakugo/PRM_Streamlit/blob/main/DEMO/PRM_Demo.mp4
+https://github.com/MSrakugo/PRM_Streamlit/assets/51268793/192b0ec0-b664-44cb-9c7a-a503868740e6
+Full Movie: DEMOhttps://github.com/MSrakugo/PRM_Streamlit/blob/main/DEMO/PRM_Demo.mp4
 
 ## Overview
 This project has developed a **Graphical User Interface (GUI) application for Protolith Reconstruction Models (PRMs)** using Python and Streamlit. PRMs utilize machine learning algorithms to estimate the original protolith composition from the composition of altered/metamorphosed rocks (the product), allowing for the **quantitative estimation of element transfer**.
