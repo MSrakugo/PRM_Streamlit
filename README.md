@@ -41,7 +41,7 @@ Note: Python 3.x and pip should be installed on your system.
 To use this application, follow these steps:
 
 1. **Download the ZIP file (ZIPファイルのダウンロード)**
-  >After downloading, use Terminal to navigate to the folder（ダウンロード後、Terminalでフォルダまで移動）
+  After downloading, use Terminal to navigate to the folder（ダウンロード後、Terminalでフォルダまで移動）
 
   ```bash
   cd [Your Repository Directory]
@@ -51,10 +51,10 @@ To use this application, follow these steps:
   git clone https://github.com/MSrakugo/PRM_Streamlit
   ```
 
-2. **(Optional)Build a virtual space in Python（Pythonの仮想空間の構築）**
-  >
 
-Install Dependencies（ライブラリのインストール）**
+2. **(Optional)Build a virtual space in Python（Pythonの仮想空間の構築）**
+
+
 
 3. **Install Dependencies（ライブラリのインストール）**
 ```bash
@@ -66,6 +66,42 @@ pip install -r requirements.txt
 streamlit run PRM_App_Main.py
 ```
 
+
+## How to use
+
+To use this application, follow these steps:
+
+1. **Download the ZIP file or Clone the Repository**
+    - To download as ZIP, visit [GitHub repository](https://github.com/MSrakugo/PRM_Streamlit), click on 'Code' and then 'Download ZIP'. After downloading, extract the ZIP file.
+    - Alternatively, clone the repository using:
+      ```bash
+      git clone https://github.com/MSrakugo/PRM_Streamlit
+      ```
+    - Navigate to the folder using Terminal:
+      ```bash
+      cd [Your Repository Directory]
+      ```
+
+2. **(Optional) Build a Virtual Environment in Python**
+    - It's recommended to create a virtual environment to keep dependencies required by different projects separate and organized. Use the following commands to create and activate a virtual environment:
+      ```bash
+      python -m venv venv
+      source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+      ```
+
+3. **Install Dependencies**
+    - Install the necessary libraries specified in the `requirements.txt` file:
+      ```bash
+      pip install -r requirements.txt
+      ```
+
+4. **Run the Application**
+    - Launch the application with the following command:
+      ```bash
+      streamlit run PRM_App_Main.py
+      ```
+
+    - The application will start running locally on your machine. Open your web browser and navigate to the local URL provided (usually `http://localhost:8501`).
 
 
 ## Author
