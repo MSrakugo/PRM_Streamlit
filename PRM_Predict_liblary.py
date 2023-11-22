@@ -115,6 +115,7 @@ def elem_product_list(data):
     for elem1, elem2 in zip(first_list, secound_list):
         ratio_name_1 = elem1 + "*" + elem2
         ratio_name_2 = elem2 + "*" + elem1
+        ratio_name = elem1 + "/" + elem2
         try:
             first_data = data[elem1]
             secound_data = data[elem2]
