@@ -73,10 +73,10 @@ To use this application, follow these steps:
 
 1. **Download the ZIP file or Clone the Repository**
     - To download as ZIP, visit [GitHub repository](https://github.com/MSrakugo/PRM_Streamlit), click on 'Code' and then 'Download ZIP'. After downloading, extract the ZIP file.
-    - Alternatively, clone the repository using:
-      ```bash
-      git clone https://github.com/MSrakugo/PRM_Streamlit
-      ```
+      - Alternatively, clone the repository using:
+        ```bash
+        git clone https://github.com/MSrakugo/PRM_Streamlit
+        ```
     - Navigate to the folder using Terminal:
       ```bash
       cd [Your Repository Directory]
