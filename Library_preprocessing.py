@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Mar  1 23:33:29 2022
+File: PRM_Application_Main
+Begin: Tue Mar  1 23:06:08 2022
+Final update: 2023/11/21
 
-@author: satoshi_matsuno
+Author: 松野哲士 (Satoshi Matsuno), Tohoku university, Japan
+Contact: satoshi.matsuno.p2@dc.tohoku.ac.jp
+Citation: Matsuno, S., Uno, M., Okamoto, A. Tsuchiya, N. Machine-learning techniques for quantifying the protolith composition and mass transfer history of metabasalt. Sci Rep 12, 1385 (2022).
+App Citation: .
 """
 ## read library
 import pandas as pd
@@ -71,7 +76,7 @@ def Preprocessing_all(raw_data):
     ########################################## Hughes (1972) diagram
     raw_data["K2O+Na2O"] = raw_data.K2O+raw_data.Na2O
     raw_data["100*K2O/(K2O+Na2O)"] = 100*raw_data.K2O/(raw_data.Na2O+raw_data.K2O)
-    
+
     '''
     ##### now dont run
     sns.relplot(data=raw_data, x="100*K2O/(K2O+Na2O)", y="K2O+Na2O", hue='CIA', hue_order='CIA', aspect=1.4, )
@@ -107,7 +112,7 @@ def Preprocessing_all(raw_data):
             Primitive_not_applied.loc[list__, elem] = np.nan
         except:
             print("NOT_EXIST : " + elem)
-    
+
     ##数値 < 0 をdrop
     for elem in for_normalize_element:
         try:
@@ -214,7 +219,7 @@ def save_preprocessed_data(path_name, dana_name, Whole_rock_RAW, Whole_rock_cann
         Location_Ref_Data = Whole_rock_cannot_Normalize[["DataBase", "SAMPLE_INFO", 'LATITUDE', 'LONGITUDE']]
     except:
         Location_Ref_Data = Whole_rock_cannot_Normalize[["DataBase", "SAMPLE_INFO"]]
-    
+
     #compile
     PM = pd.concat([Whole_rock_after_Normalize_PM, Whole_rock_cannot_Normalize], axis = 1)
     C1 = pd.concat([Whole_rock_after_Normalize_C1, Whole_rock_cannot_Normalize], axis = 1)
@@ -230,4 +235,3 @@ def save_preprocessed_data(path_name, dana_name, Whole_rock_RAW, Whole_rock_cann
     Whole_rock_cannot_Normalize.to_excel(path_name + "Cannot_applied.xlsx")
     Location_Ref_Data.to_excel(path_name + "Location_Ref_Data.xlsx")
     return 0
-

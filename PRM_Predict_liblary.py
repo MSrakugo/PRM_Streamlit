@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Mar  3 00:04:45 2022
+File: PRM_Application_Main
+Begin: Tue Mar  1 23:06:08 2022
+Final update: 2023/11/21
 
-@author: satoshi_matsuno
+Author: 松野哲士 (Satoshi Matsuno), Tohoku university, Japan
+Contact: satoshi.matsuno.p2@dc.tohoku.ac.jp
+Citation: Matsuno, S., Uno, M., Okamoto, A. Tsuchiya, N. Machine-learning techniques for quantifying the protolith composition and mass transfer history of metabasalt. Sci Rep 12, 1385 (2022).
+App Citation: .
 """
 #plot&calc
 import pandas as pd
