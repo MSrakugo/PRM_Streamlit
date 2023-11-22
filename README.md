@@ -104,3 +104,9 @@ Satoshi Matsuno, Tohoku university, Japan
 松野哲士 東北大学環境科学研究科
 
 Contact: satoshi.matsuno.p2@dc.tohoku.ac.jp
+
+HP: https://sites.google.com/view/satoshi-matsuno/home
+
+
+## License
+This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
