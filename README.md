@@ -1,12 +1,17 @@
 # GUI Application for Protolith Reconstruction Models (PRMs)
 
 ## Overview
-This project introduces a **Graphical User Interface (GUI) application for Protolith Reconstruction Models (PRMs)**, developed in Python and Streamlit. It employs **machine learning algorithms** to reconstruct the protolith composition and quantify element transfer.
+This project developed a **Graphical User Interface (GUI) application for Protolith Reconstruction Models (PRMs)**, developed in Python and Streamlit. It employs **machine learning algorithms** to reconstruct the protolith composition and quantify element transfer.
 
 This application not only allows users to **easily handle PRMs** through a user-friendly GUI but also offers **tools for the normalization and visualization of compositional data** through simple file drop functionality.
 
+このプロジェクトでは、PythonとStreamlitで開発された**原岩組成復元モデル（PRMs）用のグラフィカルユーザーインターフェース（GUI）アプリケーション**を開発した。PRMsは、機械学習アルゴリズムを利用して、個々の試料に対して、原岩（出発物質）の組成を元素移動を被った変質/変成岩（生成物質）の組成から推定し、**元素移動を定量的に推定** することが可能です。
+* 具体的には、変質/変成岩組成の中で、元素移動を被らなかった元素群（例えばTh, Nbなど）を、原岩（出発物質）の組成の痕跡と見なし、原岩組成データセットによって構築された機械学習モデルに入力します。機械学習モデルによる推定により原岩組成が既知となり、既知である変質/変成岩組成と比較することで、定量的な元素移動量が求められます。
+
+このアプリケーションは、**ユーザーフレンドリーなGUI** を通じてPRMsを簡単に扱うことができるだけでなく、**組成データの正規化と可視化のためのツール** も提供します。これらのツールは、シンプルな**ファイルドロップ機能**を通じて利用可能です。
+
 ## Paper
-This methodology is based on the research paper:
+This PRM methodology is based on the research paper:
 * Matsuno, S., Uno, M., Okamoto, A. et al. Machine-learning techniques for quantifying the protolith composition and mass transfer history of metabasalt. Sci Rep 12, 1385 (2022). [https://doi.org/10.1038/s41598-022-05109-x](https://doi.org/10.1038/s41598-022-05109-x)
 
 Key words: **Geochemistry, Fluid-rock interaction, Element transfer, Quantitative evaluation, Machine-learning techniques**
@@ -14,7 +19,7 @@ Key words: **Geochemistry, Fluid-rock interaction, Element transfer, Quantitativ
 ## Features
 * **Protolith Reconstruction Models (PRMs)**: Estimate the protolith composition (default model: for basalt trace-element compositions) from a limited number of input elements of altered/metamorphosed samples with high accuracy.
   * The default models are constructed based on LightGBM algorithms and trained with datasets for various types of basalts, including mid-ocean ridge, ocean-island, and volcanic arc basalts.
-  * In the near future, we plan to update this application to enable model construction with your customized datasets.
+  * In the near future, I plan to update this application to enable model construction with your customized datasets.
 * **User-Friendly Interface**: Intuitively designed, making it accessible for users with varying levels of technical expertise.
 
 ## Requirement
@@ -24,3 +29,10 @@ Key words: **Geochemistry, Fluid-rock interaction, Element transfer, Quantitativ
 ## Author
 
 ## References
+
+
+## 日本語
+
+このプロジェクトでは、PythonとStreamlitで開発された、プロトリス再構成モデル（PRM）のためのグラフィカル・ユーザー・インターフェース（GUI）アプリケーションを紹介する。このアプリケーションは、プロトリスの組成を再構成し、元素の移動を定量化するために機械学習アルゴリズムを採用している。
+
+このアプリケーションは、ユーザーフレンドリーなGUIを通してPRMを簡単に扱うことができるだけでなく、簡単なファイルドロップ機能を通して組成データの正規化と可視化のためのツールも提供する。
