@@ -19,10 +19,10 @@ This PRM methodology is based on the research paper:
 Key words: **Geochemistry, Fluid-rock interaction, Element transfer, Quantitative evaluation, Machine-learning techniques**
 
 ## Features
-* **Protolith Reconstruction Models (PRMs)**: Estimate the protolith composition (default model: for basalt trace-element compositions) from a limited number of input elements of altered/metamorphosed samples with high accuracy.
-  * The default models are constructed based on LightGBM algorithms and trained with datasets for various types of basalts, including mid-ocean ridge, ocean-island, and volcanic arc basalts.
-  * In the near future, I plan to update this application to enable model construction with your customized datasets.
-* **User-Friendly Interface**: Intuitively designed, making it accessible for users with varying levels of technical expertise.
+* **Protolith Reconstruction Models (PRMs)**: Accurately estimate the protolith composition from a limited number of input elements of altered or metamorphosed samples. The default model focuses on basalt trace-element compositions.
+  * These default models are developed using LightGBM algorithms and are trained with datasets encompassing various types of basalts, including mid-ocean ridge basalts, ocean-island basalts, and volcanic arc basalts.
+  * I plan to enhance the application soon to allow for the creation of models using customized datasets tailored to specific research needs.
+* **User-Friendly Interface**: The application is intuitively designed, ensuring ease of use for individuals with different levels of technical expertise.
 
 ## Requirement
 
