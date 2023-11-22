@@ -34,10 +34,19 @@ Before running the application, ensure you have the following requirements insta
 - LightGBM
 - Other dependencies listed in `requirements.txt`
 
-Note: Python 3.x and pip should be installed on your system. If not, you can download and install them from [Python's official website](https://www.python.org/downloads/).
-
+Note: Python 3.x and pip should be installed on your system.
 
 ## How to use
+
+To use this application, follow these steps:
+
+1. **Clone the Repository**　
+   ```bash
+   git clone [Your Repository URL]
+   cd [Your Repository Directory]
+
+
+
 
 ## Author
 
