@@ -12,7 +12,7 @@ This project has developed a **Graphical User Interface (GUI) application for Pr
 
 This application not only allows users to **easily handle PRMs** through a user-friendly GUI but also offers **tools for the normalization and visualization of compositional data** through simple file drop functionality.
 
-このプロジェクトでは、PythonとStreamlitを用いて**原岩組成復元モデル（PRMs）用のグラフィカルユーザーインターフェース（GUI）アプリケーション**を開発しました。PRMsは、機械学習アルゴリズムを利用して、個々の試料に対して、原岩（出発物質）の組成を元素移動を被った変質/変成岩（生成物質）の組成から推定し、**元素移動を定量的に推定** することが可能です。
+このプロジェクトでは、Streamlitを用いて**原岩組成復元モデル（PRMs）用のグラフィカルユーザーインターフェース（GUI）アプリケーション**を開発しました。PRMsは、機械学習アルゴリズムを利用して、個々の試料に対して、原岩（出発物質）の組成を元素移動を被った変質/変成岩（生成物質）の組成から推定し、**元素移動を定量的に推定** することが可能です。
 
 このアプリケーションは、**ユーザーフレンドリーなGUI** を通じてPRMsを簡単に扱うことができるだけでなく、**組成データの正規化と可視化のためのツール** も提供します。これらのツールは、シンプルな**ファイルドロップ機能**を通じて利用可能です。
 
