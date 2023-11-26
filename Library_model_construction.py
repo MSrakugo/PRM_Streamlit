@@ -180,6 +180,79 @@ class Model_Training_Setting: # Model trainig_Setting
 ################################################# Define class for model construction
 
 ################################################# Model All Setting Class Define
+def Model_All_Setting_BASE(PRM_construction_Setting, Model_Training_Process, Model_algorithm):
+    # PRM_construction_Settingによって、PRMのconstruction_Settingを定義
+    # 各Classを作成する
+    if PRM_construction_Setting == 'Normal':
+        ##################################### feature_setting
+        setting_X_raw = "on"
+        setting_X_log = "off"
+        setting_X_product = "on"
+        setting_X_product_log = "off"
+        setting_X_ratio = "on" ##########
+        setting_X_ratio_log = "off"
+        #standard_scalerに与える時，X_log or Xを選択
+        setting_NORMAL_OR_LOG = "off" #
+        setting_PCA = "off"#
+        setting_ICA = "off"#
+        setting_standard_scaler = "off"
+        ##################################### feature_setting
+
+    elif PRM_construction_Setting == 'Ratio':
+        ##################################### feature_setting
+        setting_X_raw = "off"
+        setting_X_log = "off"
+        setting_X_product = "off"
+        setting_X_product_log = "off"
+        setting_X_ratio = "on" ##########
+        setting_X_ratio_log = "off"
+        #standard_scalerに与える時，X_log or Xを選択
+        setting_NORMAL_OR_LOG = "off" #
+        setting_PCA = "off"#
+        setting_ICA = "off"#
+        setting_standard_scaler = "off"
+        ##################################### feature_setting
+
+    elif PRM_construction_Setting == 'Optional':
+        ##################################### feature_setting
+        setting_X_raw = "off"
+        setting_X_log = "off"
+        setting_X_product = "off"
+        setting_X_product_log = "off"
+        setting_X_ratio = "on" ##########
+        setting_X_ratio_log = "off"
+        #standard_scalerに与える時，X_log or Xを選択
+        setting_NORMAL_OR_LOG = "off" #
+        setting_PCA = "off"#
+        setting_ICA = "off"#
+        setting_standard_scaler = "off"
+
+    ##################################### feature_setting
+
+    if Model_Training_Process == 'Optional':
+        ##################################### Training settings
+        n_trials = 100 ### parameter tuning trial number
+        Fold_num = 4 ### model numbers (ensemble)
+        test_size=0.2 ### test size → 80% training, 20% test
+        random_state = 71 ### define random state
+        ##################################### Training settings
+    else:
+        ##################################### Training settings
+        n_trials = 100 ### parameter tuning trial number
+        Fold_num = 4 ### model numbers (ensemble)
+        test_size=0.2 ### test size → 80% training, 20% test
+        random_state = 71 ### define random state
+        ##################################### Training settings
+
+
+    ########### Make class and compile setting in class feature_setting
+    feature_setting = Model_feature_setting(Model_algorithm, setting_X_raw, setting_X_log, setting_X_product, setting_X_product_log, setting_X_ratio, setting_X_ratio_log, setting_NORMAL_OR_LOG, \
+                    setting_PCA, setting_ICA, setting_standard_scaler)
+    Training_Setting = Model_Training_Setting(n_trials, Fold_num, test_size, random_state)
+    ########### Make class and compile setting in class feature_setting
+    return feature_setting, Training_Setting
+################################################# Model All Setting Class Define
+
 def Model_All_Setting(PRM_construction_Setting, Model_Training_Process, Model_algorithm, Model_ex):
     # PRM_construction_Settingによって、PRMのconstruction_Settingを定義
     # 各Classを作成する

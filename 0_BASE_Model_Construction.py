@@ -51,16 +51,16 @@ SAMPLE_INFO = 'Protolith'
 ###################################################### Model setting
 #today_date = '231005_for_normal_model'
 today_date = str(datetime.date.today())
-PRM_construction_Setting = 'Normal' ## raw->normal, ratio->ratio choice=['Normal', 'Ratio', 'Optional']
+PRM_construction_Setting = 'Optional' ## raw->normal, ratio->ratio choice=['Normal', 'Ratio', 'Optional']
 Model_algorithm = 'LightGBM'  ### 'LightGBM' or 'NGBoost'
 Minimum_combination_number = 4
 today_date = today_date + '_' + PRM_construction_Setting + '_' + Model_algorithm+ '_Mincomb_' + str(Minimum_combination_number)
 
 # Define Model Setting
 if PRM_construction_Setting == 'Normal':
-    feature_setting, Training_Setting = construction_PRM.Model_All_Setting(PRM_construction_Setting, Model_algorithm)
+    feature_setting, Training_Setting = construction_PRM.Model_All_Setting_BASE(PRM_construction_Setting, Model_algorithm)
 elif PRM_construction_Setting == 'Ratio':
-    feature_setting, Training_Setting = construction_PRM.Model_All_Setting(PRM_construction_Setting, Model_algorithm)
+    feature_setting, Training_Setting = construction_PRM.Model_All_Setting_BASE(PRM_construction_Setting, Model_algorithm)
 elif PRM_construction_Setting == 'Optional':
         ##################################### feature_setting
         setting_X_raw = "on"
