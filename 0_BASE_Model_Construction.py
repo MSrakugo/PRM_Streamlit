@@ -1,5 +1,3 @@
- #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Begin: Tue Mar  23:33:29 2022
 Final update: 2023/11/25
@@ -10,12 +8,12 @@ Citation: Matsuno, S., Uno, M., Okamoto, A. Tsuchiya, N. Machine-learning techni
 App Citation: Satoshi Matsuno. (2023). Graphical interface to construct and apply Machine-learning based Protolith Reconstruction Models (PRMs) (v1.1). Zenodo. https://doi.org/10.5281/zenodo.10183974
 """
 def make_dirs(path):
-    import os
     try:
         os.makedirs(path)
     except:
         pass
 
+import os
 ## read self library
 import Library_preprocessing as preprocessing_PRM
 import Library_model_construction as construction_PRM
@@ -26,9 +24,40 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from concurrent.futures import ThreadPoolExecutor
+import lightgbm as lgb
 
 # Date time
 import datetime
+
+
+#plot&calc
+#from msvcrt import LK_LOCK
+#統計処理
+import itertools
+
+#pickle
+import pickle
+
+#ファイル管理系
+import glob
+#ランダム
+import random
+random.seed(0)
+
+#model
+import ngboost
+
+#ML related
+import optuna
+from sklearn.model_selection import KFold
+from sklearn.metrics import mean_squared_error, mean_squared_log_error, mean_absolute_error, r2_score
+from sklearn.model_selection import train_test_split
+from sklearn.decomposition import PCA, FastICA
+from sklearn.preprocessing import StandardScaler
+from sklearn.tree import DecisionTreeRegressor
+
+# plot
+import matplotlib.pyplot as plt
 
 ################################################################# Preprocessing
 ##### define path for dataset
