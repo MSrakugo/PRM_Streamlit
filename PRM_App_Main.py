@@ -15,7 +15,7 @@ import PRM_App_Library as App_Library
 
 
 #################################################################################### Main
-st.header("Protolith reconstruction model (PRM)")
+st.header("Protolith Reconstruction Models (PRMs)")
 st.markdown("This is a **GUI interface** for Protolith Reconstruction Models.")
 st.markdown("You can **construct PRMs** and **predict protolith composition** from alterd/metamorphosed rocks by yourself")
 
