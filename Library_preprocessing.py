@@ -38,7 +38,7 @@ def Preprocessing_all(raw_data):
 
     ########################################## major data compile wt%->ppmの計算
     #DATA for exchange % to ppm
-    elem_weight = pd.read_excel("../List/Element_weight.xlsx", index_col=0).drop("O").T
+    elem_weight = pd.read_excel("List/Element_weight.xlsx", index_col=0).drop("O").T
     elem_list = elem_weight.columns
     word_list = elem_weight.T["Word"]
     ###### data save
@@ -92,7 +92,7 @@ def Preprocessing_all(raw_data):
     ########################################## Primitive mantle normalize
     Primitive_not_applied = raw_data.copy()
     #normalizeのためのデータをread
-    for_normalize_data = pd.read_excel("../List/Primitive_Mantle _ C1 Chondrite.xlsx", index_col=0)
+    for_normalize_data = pd.read_excel("List/Primitive_Mantle _ C1 Chondrite.xlsx", index_col=0)
     for_normalize_data = for_normalize_data.drop(columns=['Unnamed: 1']).T
     #一部のデータはErrorになるので，先にdrop
     for_normalize_data = for_normalize_data.drop(['F', 'In', 'Cl', 'Ge'])
@@ -210,8 +210,8 @@ def Preprocessing_all(raw_data):
     ########################################## Primitive mantle normalize
     return  Primitive_not_applied_Whole_rock, Whole_rock_cannot_Normalize, Whole_rock_after_Normalize_PM, Whole_rock_after_Normalize_C1
 
-def save_preprocessed_data(path_name, dana_name, Whole_rock_RAW, Whole_rock_cannot_Normalize, Whole_rock_after_Normalize_PM, Whole_rock_after_Normalize_C1):
-    path_name = path_name+dana_name+'/'
+def save_preprocessed_data(path_name, data_name, Whole_rock_RAW, Whole_rock_cannot_Normalize, Whole_rock_after_Normalize_PM, Whole_rock_after_Normalize_C1):
+    path_name = path_name+data_name+'/'
     make_dirs(path_name)
     ###output
     try:
