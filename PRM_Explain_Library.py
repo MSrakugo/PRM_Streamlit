@@ -357,3 +357,4 @@ def NGBoost_Scatter_Plot(path_model, path, mobile_elem_all, good_range_elem, TEC
     st.pyplot(fig)
     plt.clf()
     plt.close()
+
