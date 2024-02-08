@@ -71,7 +71,6 @@ class Model_feature_setting: # feature setting
         self.setting_PCA = setting_PCA
         self.setting_ICA = setting_ICA
         self.setting_standard_scaler = setting_standard_scaler
-
 #################################################クラスの定義
 #################################################計算関連
 def make_dirs(path):

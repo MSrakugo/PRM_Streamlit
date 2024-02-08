@@ -1,4 +1,5 @@
 .DS_Store
+0_NoteBook
 venv/
 0_PRM_Model_Folder/LightGBM
 0_PRM_Model_Folder/NGBoost

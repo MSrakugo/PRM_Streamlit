@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Begin: Tue Mar  1 23:06:08 2022
-Final update: 2023/11/29
+Final update: 2024/02/07
 
 Author: 松野哲士 (Satoshi Matsuno), Tohoku university, Japan
 Contact: satoshi.matsuno.p2@dc.tohoku.ac.jp
@@ -125,7 +125,7 @@ def Error_Distribution_Figure(path_model, path, mobile_elem_all, good_range_elem
                 set_xticks = [0.1, 1.0, 10.0]
             # only Rb display legend
             legend_flag = False
-            if define_mobile_elem == 'Rb':
+            if (define_mobile_elem == 'Rb')&(hist_name ==hist_family[0]) :
                 legend_flag = True
             ################################################################ Setting
             ################################################################ PLOT
