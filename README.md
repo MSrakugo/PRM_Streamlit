@@ -110,7 +110,7 @@ Satoshi Matsuno, Tohoku university, Japan
 
 松野哲士 東北大学環境科学研究科
 
-HP: https://sites.google.com/view/satoshi-matsuno/home
+HP: https://sites.google.com/view/matsunos/home
 
 
 ## License
