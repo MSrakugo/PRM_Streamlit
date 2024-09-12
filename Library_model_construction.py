@@ -1,6 +1,6 @@
 """
 Begin: Tue Mar  1 23:06:08 2022
-Final update: 2023/11/25
+Final update: 2024/05/10
 
 Author: 松野哲士 (Satoshi Matsuno), Tohoku university, Japan
 Contact: satoshi.matsuno.p2@dc.tohoku.ac.jp
@@ -132,6 +132,19 @@ def combination_list(Minimum_combination_number, immobile_elem_all, mobile_elem_
     element_compile.columns = ['immobile', 'mobile']
     return element_compile
 ################################################################# make combination
+
+################################################################# 重複チェック for Ratio elements
+def check_and_modify_duplicates(mobile_list, immobile_list):
+    # 重複を確認
+    duplicates = set(mobile_list) & set(immobile_list)
+    # 辞書を作成
+    duplicates_dict = {elem: elem + '_' for elem in duplicates}
+
+    # mobile_list の重複している要素を末尾に '_' を付けて変更
+    modified_mobile_list = [elem + '_' if elem in duplicates else elem for elem in mobile_list]
+
+    return list(duplicates), duplicates_dict, modified_mobile_list
+################################################################# 重複チェック for Ratio elements
 
 
 ################################################# Define class for model construction
@@ -509,7 +522,6 @@ def model_construction(feature_setting, params, train_x_valid, train_y_valid, cv
                 'objective': 'regression',
                 'metric': 'rmse',
                 'seed': 42,
-
             }
             model = lgb.train(params, train_set, valid_sets=[train_set, val_set], evals_result=evals_result, valid_names=['train', 'eval'], verbose_eval=True)
         else:

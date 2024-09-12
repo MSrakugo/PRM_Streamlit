@@ -47,11 +47,11 @@ data_name = Protolith_DATA_ex.text_input("Write Data Name", "Protolith")
 Protolith_DATA_ex.caption("Default data: MORB, VAB, OIB")
 own_data = Protolith_DATA_ex.checkbox("Upload your protolith data")
 if own_data:
-    uploaded_file = Protolith_DATA_ex.file_uploader("Choose a file (Excel or CSV)")
+    uploaded_file = [Protolith_DATA_ex.file_uploader("Choose a file (Excel or CSV)")] # 240326修正 ln96のlen機能いらない？
     DataBase = Protolith_DATA_ex.text_input("Write DataBase", "PetDB")
     SAMPLE_INFO = Protolith_DATA_ex.text_input("Write Sample Info", "Protolith")
 else: # Default -> Metabsalt (MORB, VAB, OIB)
-    uploaded_file = ['0_Model_Construction_Protolith_Composition_Data/PRM_For_Metabasalt/PetDB_Metabasalt.xlsx']
+    uploaded_file = ['0_Model_Construction_Protolith_Composition_Data/PRM_For_Metabasalt/PetDB_Metabasalt_20231126.xlsx']
     DataBase = 'petdb'
     SAMPLE_INFO = 'Protolith'
 # Set index and header
