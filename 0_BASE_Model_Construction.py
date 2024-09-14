@@ -173,6 +173,14 @@ print("FIN: Preprocessing")
 
 ################################################################# Main
 ######################### initial setting-> element
+
+"""
+Caution when determing the input/output elements
+主要元素の設定を"Ti"などとした場合にエラーが出る　
+-> Applyするときに、Inputの設定で問題が生じるため：具体的にはPMノーマライズ前に元素設定をするため、Tiではエラーが発生する
+->"TiO2"のように元素を設定するようにすること
+"""
+
 # Normal LightGBM
 #elem_all = ['Rb', 'Ba', 'Th', 'U', 'Nb', 'K', 'La', 'Ce', 'Pb', 'Sr', 'P', 'Nd', 'Zr', 'Ti', 'Y', 'Yb', 'Lu', 'SiO2', 'Al2O3', 'MgO', 'Na2O', 'P2O5', 'CaO', 'K2O', 'MnO', 'FeO']
 #mobile_elem_all = ['Rb', 'Ba', 'Th', 'U', 'Nb', 'K', 'La', 'Ce', 'Pb', 'Sr', 'P', 'Nd', 'Zr', 'Ti', 'Y', 'Yb', 'Lu', 'SiO2', 'Al2O3', 'MgO', 'Na2O', 'P2O5', 'CaO',  'K2O', 'MnO', 'FeO',]
@@ -186,9 +194,9 @@ print("FIN: Preprocessing")
 #immobile_elem_all = ['Zr', 'Th', 'Ti', 'Nb', 'Al2O3', 'Cr', ]
 
 #elem_all = ["Ti", "Nb", "Zr", "Y", "Th", "SiO2", "Al2O3", "MnO", "MgO", "CaO", "Na2O", "K2O", 'Rb', 'Ba', 'U', 'La', 'Ce', 'Pb', 'Sr', 'P', 'Nd', 'Yb', 'Lu',]
-elem_all = ["Ti", "Nb", "Zr", "Y", "Th", "SiO2", "K2O", 'Rb', 'Ba', 'Pb',]
+elem_all = ["TiO2", "Nb", "Zr", "Y", "Th", "SiO2", "K2O", 'Rb', 'Ba', 'Pb', "Sr", 'Al2O3', 'MgO', 'Na2O', 'P2O5', 'CaO', 'MnO', 'FeO']
 mobile_elem_all = elem_all
-immobile_elem_all = ["Ti", "Nb", "Zr", "Y", "Th"] # , 
+immobile_elem_all = ["TiO2", "Nb", "Zr", "Y", "Th"] # , 
 ######################### initial setting-> element
 
 """

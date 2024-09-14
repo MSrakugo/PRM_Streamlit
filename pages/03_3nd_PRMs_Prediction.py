@@ -180,17 +180,16 @@ if uploaded_file is not None:
 if Ratio_flag:
     ######## 準備
     # List of elements to check for
-    target_elements = ['Si', 'Al', 'Mg', 'Na', 'P', 'Ca', 'Mn', 'Fe', 'K', 'Ti']
-    rename_elements = ['SiO2', 'Al2O3', 'MgO', 'Na2O', 'P2O5', 'CaO', 'MnO', 'FeO', 'K2O', 'TiO2']
+    #target_elements = ['Si', 'Al', 'Mg', 'Na', 'P', 'Ca', 'Mn', 'Fe', 'K', 'Ti']
+    #rename_elements = ['SiO2', 'Al2O3', 'MgO', 'Na2O', 'P2O5', 'CaO', 'MnO', 'FeO', 'K2O', 'TiO2']
     ######## 準備
     # 重複元素を_をつけて別元素として記録
     duplicates, duplicates_dict, mobile_elem_all = construction_PRM.check_and_modify_duplicates(mobile_elem, immobile_elem)
     
-    # duplicates に含まれている target_elements を major_duplicate としてリスト化
-    major_duplicate = [elem for elem in target_elements if elem in duplicates]
-    # major_duplicate を target_elements と rename_elements に従ってリネーム->PMで処理してから追加の際に使う
-    renamed_major_duplicate = [rename_elements[target_elements.index(elem)] for elem in major_duplicate]
-    st.write(major_duplicate, renamed_major_duplicate)
+    # duplicates に含まれている target_elements を major_duplicate としてリスト化->PMで処理してから追加の際に使う ver 240914
+    #major_duplicate = [elem for elem in target_elements if elem in duplicates]
+    # major_duplicate を target_elements と rename_elements に従ってリネーム
+    #renamed_major_duplicate = [rename_elements[target_elements.index(elem)] for elem in major_duplicate]
 
     duplicates_df = raw_data[duplicates].copy()
     duplicates_df.rename(columns=duplicates_dict, inplace=True)
@@ -220,14 +219,18 @@ else:
     PM, Location_Ref_Data = prm.preprocessing_normalize_output(raw_data, DataBase, SAMPLE_INFO, location_info)
 
     ###### For ratio model -> PMにMajor元素の自己推定するためのデータを追加 ver 240914
-    major_duplicate_name = [elem + '_' for elem in major_duplicate]
-    PM[major_duplicate_name] = PM[major_duplicate].copy()
+    #major_duplicate_name = [elem + '_' for elem in major_duplicate]
+    # major_duplicate を target_elements と rename_elements に従ってリネーム
+    #renamed_major_duplicate = [rename_elements[target_elements.index(elem)] for elem in major_duplicate]
+    #PM[major_duplicate_name] = PM[major_duplicate].copy()
+    #PM[renamed_major_duplicate] = PM[renamed_major_duplicate].copy()
+    #st.write(major_duplicate_name, renamed_major_duplicate)
     ###### For ratio model -> PMにMajor元素の自己推定するためのデータを追加 ver 240914
 
     ###### estimation by PRM
     # model folder
     now_model_folder_name = model_path
-
+    st.write(model_path)
     # estimate
     mobile_data_compile, spidergram_data_compile, mobile_data_compile_dist, spidergram_data_compile_dist = prm_predict.predict_protolith(mobile_elem, immobile_elem, PM, Location_Ref_Data, now_model_folder_name)
 

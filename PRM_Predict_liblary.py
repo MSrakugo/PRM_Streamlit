@@ -377,11 +377,11 @@ def model_main(mobile_elem, immobile_elem, Raw_metamorphic_rock, Raw_metamorphic
     path_all_models = path_1 + path_2
     print(path_all_models)
 
-    #図を保存するディレクトリの作成
     path_4 = "/Figure"
     path_figure_all = path_all_share + path_4
-    make_dirs(path_figure_all)
-
+    if os.path.exists(path_all_share): # add ver 240914
+        #図を保存するディレクトリの作成
+        make_dirs(path_figure_all)
 
     #######################################################使うデータの整理
     #目的yと入力データXを設定
