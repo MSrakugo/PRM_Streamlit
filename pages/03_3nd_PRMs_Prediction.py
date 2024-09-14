@@ -24,6 +24,7 @@ import PRM_liblary as prm
 import PRM_Predict_liblary as prm_predict
 import Library_preprocessing as preprocessing
 import PRM_App_Library as App_Library
+import Library_model_construction as construction_PRM
 
 class Models:
     def __init__(self, model, sc, pca, ICA):
@@ -60,7 +61,7 @@ class Model_feature_setting: # feature setting
         self.setting_standard_scaler = setting_standard_scaler
 
 #################################################################################### Header
-st.header("2nd step: PRM prediction")
+st.header("3rd step: PRM prediction")
 st.markdown('> **1.**   : Choose your data file')
 st.markdown('> **2.**   : Set model setting')
 st.markdown('> **3.**   : Download data')
@@ -140,11 +141,14 @@ Model_info.table(input_variation_list)
 if raw_data is None:
     pass
 else:
-    elements_list = ['Rb', 'Ba', 'Th', 'U', 'Nb', 'K', 'La', 'Ce', 'Pb', 'Sr', 'Nd', 'Zr', 'Ti', 'Y', 'Yb','Lu', 'SiO2', 'Al2O3', 'MgO', 'Na2O', 'P2O5', 'CaO', 'MnO', 'FeO', 'K2O']
+    elements_list = ['Rb', 'Ba', 'Th', 'U', 'Nb', 'K', 'La', 'Ce', 'Pb', 'Sr', 'Nd', 'Zr', 'Ti', 'Y', 'Yb','Lu', 'SiO2', 'Al2O3', 'MgO', 'Na2O', 'P2O5', 'CaO', 'MnO', 'FeO', 'K2O', 'TiO2']
     immobile_elem=Model_Setting.multiselect("Choose the immobile elements (Check available models)", elements_list, ["Zr", "Th", "Ti", "Nb"])
     #mobile_elem=Model_Setting.multiselect("Choose the ALL elements (Contain both mobile and immobile elements)", elements_list, ['Rb', 'Ba', 'Th', 'U', 'Nb', 'K', 'La', 'Ce', 'Pb', 'Sr', 'Nd', 'Zr', 'Ti', 'Y', 'Yb','Lu','SiO2','MgO', 'Na2O', 'P2O5', 'CaO'])
-    mobile_elem=Model_Setting.multiselect("Choose the Mobile elements", elements_list, ['Rb', 'Ba', 'U', 'K', 'La', 'Ce', 'Pb', 'Sr', 'Nd', 'Y', 'Yb','Lu','SiO2','MgO', 'Na2O', 'P2O5', 'CaO'])
+    mobile_elem=Model_Setting.multiselect("Choose the Mobile elements", elements_list, ['Rb', 'Ba', 'U', 'K', 'La', 'Ce', 'Pb', 'Sr', 'Nd', 'Y', 'Yb','Lu','SiO2','MgO', 'Na2O', 'P2O5', 'CaO', 'TiO2'])
+
+Ratio_flag = Model_Setting.checkbox("Ratio")
 ###### Select element
+###### For ratio model ->Input自身を推定する
 ######################## Model setting
 
 ######################## Output setting
@@ -168,6 +172,35 @@ if uploaded_file is not None:
 ###### data information updated
 ######################## Output setting
 
+###### For ratio model ->Input自身を推定する
+#Caution for Ratio ver240707
+#例えば、Ti, Nb, Zr, Y, Thの比 → Zr濃度 を求めることは想定していない（基本的に重複削除の方針）。
+#そのため、Ratioデータについては"_"を末尾につけることで、他元素かつPM normalizationに含まれない元素として例外処理する。
+#例えば、Ti, Nb, Zr, Y, Thの比 → Zr_ という形として記述する
+if Ratio_flag:
+    ######## 準備
+    # List of elements to check for
+    target_elements = ['Si', 'Al', 'Mg', 'Na', 'P', 'Ca', 'Mn', 'Fe', 'K', 'Ti']
+    rename_elements = ['SiO2', 'Al2O3', 'MgO', 'Na2O', 'P2O5', 'CaO', 'MnO', 'FeO', 'K2O', 'TiO2']
+    ######## 準備
+    # 重複元素を_をつけて別元素として記録
+    duplicates, duplicates_dict, mobile_elem_all = construction_PRM.check_and_modify_duplicates(mobile_elem, immobile_elem)
+    
+    # duplicates に含まれている target_elements を major_duplicate としてリスト化
+    major_duplicate = [elem for elem in target_elements if elem in duplicates]
+    # major_duplicate を target_elements と rename_elements に従ってリネーム->PMで処理してから追加の際に使う
+    renamed_major_duplicate = [rename_elements[target_elements.index(elem)] for elem in major_duplicate]
+    st.write(major_duplicate, renamed_major_duplicate)
+
+    duplicates_df = raw_data[duplicates].copy()
+    duplicates_df.rename(columns=duplicates_dict, inplace=True)
+    duplicates_df = duplicates_df.rename(columns=duplicates_dict)
+    duplicates_df.columns = [elem + '_' for elem in duplicates]
+    
+    # elem_allとWhole_rock_RAWに追加
+    mobile_elem = mobile_elem+[elem + '_' for elem in duplicates]
+    raw_data = pd.concat([raw_data, duplicates_df], axis=1)
+
 ###### モデル推定開始のフラグ
 #flag_MODEL_RUN=1
 ###### モデル推定開始のフラグ
@@ -185,7 +218,11 @@ else:
         pass
     ###### Data check/preprocessing
     PM, Location_Ref_Data = prm.preprocessing_normalize_output(raw_data, DataBase, SAMPLE_INFO, location_info)
-    #st.write(PM)
+
+    ###### For ratio model -> PMにMajor元素の自己推定するためのデータを追加 ver 240914
+    major_duplicate_name = [elem + '_' for elem in major_duplicate]
+    PM[major_duplicate_name] = PM[major_duplicate].copy()
+    ###### For ratio model -> PMにMajor元素の自己推定するためのデータを追加 ver 240914
 
     ###### estimation by PRM
     # model folder

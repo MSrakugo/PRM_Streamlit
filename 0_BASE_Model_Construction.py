@@ -82,8 +82,8 @@ SAMPLE_INFO = 'Protolith'
 #today_date = '231005_for_normal_model'
 #today_date = str(datetime.date.today())+"UNO_PROJECT"
 today_date = str(datetime.date.today())+"UNO_PROJECT"
-PRM_construction_Setting = 'Optional' ## raw->normal, ratio->ratio choice=['Normal', 'Ratio', 'Optional']
-Model_algorithm = 'NGBoost'  ### 'LightGBM' or 'NGBoost'
+PRM_construction_Setting = 'Ratio' ## raw->normal, ratio->ratio choice=['Normal', 'Ratio', 'Optional']
+Model_algorithm = 'LightGBM'  ### 'LightGBM' or 'NGBoost'
 Model_Training_Process = 'Default' # Model_ex.selectbox("Model Training Setting", ['Default', 'Optional'])
 
 Minimum_combination_number = 5
@@ -125,7 +125,7 @@ elif PRM_construction_Setting == 'Optional':
         ##################################### feature_setting Normal
 
         ##################################### Training settings
-        n_trials = 50 ### parameter tuning trial number -> Normal 100
+        n_trials = 100 ### parameter tuning trial number -> Normal 100
         Fold_num = 5 ### model numbers (ensemble)
         test_size=0.2 ### test size → 80% training, 20% test
         random_state = 71 ### define random state
@@ -206,6 +206,7 @@ if PRM_construction_Setting == 'Ratio':
     
     # elem_allとWhole_rock_RAWに追加
     elem_all = elem_all+[elem + '_' for elem in duplicates]
+    mobile_elem_all = elem_all
     Whole_rock_RAW = pd.concat([Whole_rock_RAW, duplicates_df], axis=1)
 
 #### list elem_allに入っていない要素をWhole_rock_after_Normalize_PM.columnsから見つけ出す
