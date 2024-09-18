@@ -35,6 +35,10 @@ Key words:
 
 **Geochemistry, Fluid-rock interaction, Element transfer, Quantitative evaluation, Machine-learning techniques**
 
+## Application Exaples
+
+Seafloor Alteration Governed by Oceanic Crustal Age and Redox Conditions: Insights from Machine Learning-based Elemental Transfer Analyses. Matsuno, S., Uno, M., Okamoto, A [under review](https://essopenarchive.org/users/708320/articles/692946-seafloor-alteration-governed-by-oceanic-crustal-age-and-redox-conditions-insights-from-machine-learning-based-elemental-transfer-analyses)
+
 ## Features
 * **Protolith Reconstruction Models (PRMs)**: Accurately estimate the protolith composition from a limited number of input elements of altered or metamorphosed samples. The default model focuses on basalt trace-element compositions.
   * These default models are developed using LightGBM algorithms and are trained with datasets encompassing various types of basalts, including mid-ocean ridge basalts, ocean-island basalts, and volcanic arc basalts.
