@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Begin: Tue Mar  1 23:06:08 2022
-Final update: 2023/11/21
+Final update: 2023/11/25
 
 Author: 松野哲士 (Satoshi Matsuno), Tohoku university, Japan
 Contact: satoshi.matsuno.p2@dc.tohoku.ac.jp
@@ -15,7 +15,7 @@ import PRM_App_Library as App_Library
 
 
 #################################################################################### Main
-st.header("Protolith reconstruction model (PRM)")
+st.header("Protolith Reconstruction Models (PRMs)")
 st.markdown("This is a **GUI interface** for Protolith Reconstruction Models.")
 st.markdown("You can **construct PRMs** and **predict protolith composition** from alterd/metamorphosed rocks by yourself")
 

@@ -71,7 +71,6 @@ class Model_feature_setting: # feature setting
         self.setting_PCA = setting_PCA
         self.setting_ICA = setting_ICA
         self.setting_standard_scaler = setting_standard_scaler
-
 #################################################クラスの定義
 #################################################計算関連
 def make_dirs(path):
@@ -295,7 +294,7 @@ def predict_model(elem, X_use, y,  path_all_share, path_figure_all, path_all_mod
     pred_data["predict_dist"] = pred_y_dist_log
     ##########PMの値をかけて，orderをppmに直して行く
     #normalizeのためのデータをread
-    for_normalize_data = pd.read_excel("../List/Primitive_Mantle _ C1 Chondrite.xlsx", index_col=0)
+    for_normalize_data = pd.read_excel("List/Primitive_Mantle _ C1 Chondrite.xlsx", index_col=0)
     for_normalize_data = for_normalize_data.drop(columns=['Unnamed: 1']).T
     #一部のデータはErrorになるので，先にdrop
     for_normalize_data = for_normalize_data.drop(['F', 'In', 'Cl', 'Ge'])
@@ -378,11 +377,11 @@ def model_main(mobile_elem, immobile_elem, Raw_metamorphic_rock, Raw_metamorphic
     path_all_models = path_1 + path_2
     print(path_all_models)
 
-    #図を保存するディレクトリの作成
     path_4 = "/Figure"
     path_figure_all = path_all_share + path_4
-    make_dirs(path_figure_all)
-
+    if os.path.exists(path_all_share): # add ver 240914
+        #図を保存するディレクトリの作成
+        make_dirs(path_figure_all)
 
     #######################################################使うデータの整理
     #目的yと入力データXを設定

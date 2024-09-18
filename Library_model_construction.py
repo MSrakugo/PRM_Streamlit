@@ -1,8 +1,6 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Begin: Tue Mar  1 23:06:08 2022
-Final update: 2023/11/21
+Final update: 2024/05/10
 
 Author: 松野哲士 (Satoshi Matsuno), Tohoku university, Japan
 Contact: satoshi.matsuno.p2@dc.tohoku.ac.jp
@@ -14,6 +12,7 @@ App Citation: Satoshi Matsuno. (2023). Graphical interface to construct and appl
 #from msvcrt import LK_LOCK
 import pandas as pd
 import numpy as np
+import streamlit as st
 
 #統計処理
 import itertools
@@ -75,6 +74,7 @@ def elem_ratio_list(data):
             ratio_value = first_data/secound_data
             ratio_data[ratio_name_1] = ratio_value
         except:
+            print("Check ratio")
             print(ratio_name)
     return ratio_data
 
@@ -90,6 +90,7 @@ def elem_product_list(data):
             ratio_value = first_data*secound_data
             ratio_data[ratio_name] = ratio_value
         except:
+            print("Check product")
             print(ratio_name)
     return ratio_data
 ### Calculate combination ratio/product
@@ -132,6 +133,19 @@ def combination_list(Minimum_combination_number, immobile_elem_all, mobile_elem_
     return element_compile
 ################################################################# make combination
 
+################################################################# 重複チェック for Ratio elements
+def check_and_modify_duplicates(mobile_list, immobile_list):
+    # 重複を確認
+    duplicates = set(mobile_list) & set(immobile_list)
+    # 辞書を作成
+    duplicates_dict = {elem: elem + '_' for elem in duplicates}
+
+    # mobile_list の重複している要素を末尾に '_' を付けて変更
+    modified_mobile_list = [elem + '_' if elem in duplicates else elem for elem in mobile_list]
+
+    return list(duplicates), duplicates_dict, modified_mobile_list
+################################################################# 重複チェック for Ratio elements
+
 
 ################################################# Define class for model construction
 class Models: # pickle for model
@@ -167,7 +181,208 @@ class Model_feature_setting: # feature setting
         self.setting_PCA = setting_PCA
         self.setting_ICA = setting_ICA
         self.setting_standard_scaler = setting_standard_scaler
+
+class Model_Training_Setting: # Model trainig_Setting
+    def __init__(self, n_trials, Fold_num, test_size, random_state):
+        self.n_trials = n_trials
+        self.Fold_num = Fold_num
+        self.test_size = test_size
+        self.random_state = random_state
 ################################################# Define class for model construction
+
+################################################# Model All Setting Class Define
+def Model_All_Setting_BASE(PRM_construction_Setting, Model_Training_Process, Model_algorithm):
+    # PRM_construction_Settingによって、PRMのconstruction_Settingを定義
+    # 各Classを作成する
+    if PRM_construction_Setting == 'Normal':
+        ##################################### feature_setting
+        setting_X_raw = "on"
+        setting_X_log = "off"
+        setting_X_product = "on"
+        setting_X_product_log = "off"
+        setting_X_ratio = "on" ##########
+        setting_X_ratio_log = "off"
+        #standard_scalerに与える時，X_log or Xを選択
+        setting_NORMAL_OR_LOG = "off" #
+        setting_PCA = "off"#
+        setting_ICA = "off"#
+        setting_standard_scaler = "off"
+        ##################################### feature_setting
+
+    elif PRM_construction_Setting == 'Ratio':
+        ##################################### feature_setting
+        setting_X_raw = "off"
+        setting_X_log = "off"
+        setting_X_product = "off"
+        setting_X_product_log = "off"
+        setting_X_ratio = "on" ##########
+        setting_X_ratio_log = "off"
+        #standard_scalerに与える時，X_log or Xを選択
+        setting_NORMAL_OR_LOG = "off" #
+        setting_PCA = "off"#
+        setting_ICA = "off"#
+        setting_standard_scaler = "off"
+        ##################################### feature_setting
+
+    elif PRM_construction_Setting == 'Optional':
+        ##################################### feature_setting
+        setting_X_raw = "off"
+        setting_X_log = "off"
+        setting_X_product = "off"
+        setting_X_product_log = "off"
+        setting_X_ratio = "on" ##########
+        setting_X_ratio_log = "off"
+        #standard_scalerに与える時，X_log or Xを選択
+        setting_NORMAL_OR_LOG = "off" #
+        setting_PCA = "off"#
+        setting_ICA = "off"#
+        setting_standard_scaler = "off"
+
+    ##################################### feature_setting
+
+    if Model_Training_Process == 'Optional':
+        ##################################### Training settings
+        n_trials = 100 ### parameter tuning trial number
+        Fold_num = 4 ### model numbers (ensemble)
+        test_size=0.2 ### test size → 80% training, 20% test
+        random_state = 71 ### define random state
+        ##################################### Training settings
+    else:
+        ##################################### Training settings
+        n_trials = 100 ### parameter tuning trial number
+        Fold_num = 4 ### model numbers (ensemble)
+        test_size=0.2 ### test size → 80% training, 20% test
+        random_state = 71 ### define random state
+        ##################################### Training settings
+
+
+    ########### Make class and compile setting in class feature_setting
+    feature_setting = Model_feature_setting(Model_algorithm, setting_X_raw, setting_X_log, setting_X_product, setting_X_product_log, setting_X_ratio, setting_X_ratio_log, setting_NORMAL_OR_LOG, \
+                    setting_PCA, setting_ICA, setting_standard_scaler)
+    Training_Setting = Model_Training_Setting(n_trials, Fold_num, test_size, random_state)
+    ########### Make class and compile setting in class feature_setting
+    return feature_setting, Training_Setting
+################################################# Model All Setting Class Define
+
+def Model_All_Setting(PRM_construction_Setting, Model_Training_Process, Model_algorithm, Model_ex):
+    # PRM_construction_Settingによって、PRMのconstruction_Settingを定義
+    # 各Classを作成する
+    if PRM_construction_Setting == 'Normal':
+        ##################################### feature_setting
+        setting_X_raw = "on"
+        setting_X_log = "off"
+        setting_X_product = "on"
+        setting_X_product_log = "off"
+        setting_X_ratio = "on" ##########
+        setting_X_ratio_log = "off"
+        #standard_scalerに与える時，X_log or Xを選択
+        setting_NORMAL_OR_LOG = "off" #
+        setting_PCA = "off"#
+        setting_ICA = "off"#
+        setting_standard_scaler = "off"
+        ##################################### feature_setting
+
+    elif PRM_construction_Setting == 'Ratio':
+        ##################################### feature_setting
+        setting_X_raw = "off"
+        setting_X_log = "off"
+        setting_X_product = "off"
+        setting_X_product_log = "off"
+        setting_X_ratio = "on" ##########
+        setting_X_ratio_log = "off"
+        #standard_scalerに与える時，X_log or Xを選択
+        setting_NORMAL_OR_LOG = "off" #
+        setting_PCA = "off"#
+        setting_ICA = "off"#
+        setting_standard_scaler = "off"
+        ##################################### feature_setting
+
+    elif PRM_construction_Setting == 'Optional':
+        ##################################### feature_setting
+        setting_X_raw_check = Model_ex.checkbox("setting_X_raw")
+        if setting_X_raw_check:
+            setting_X_raw = "on"
+        else:
+            setting_X_raw = "off"
+
+        setting_X_log_check = Model_ex.checkbox("setting_X_log")
+        if setting_X_log_check:
+            setting_X_log = "on"
+        else:
+            setting_X_log = "off"
+
+        setting_X_product_check = Model_ex.checkbox("etting_X_product")
+        if setting_X_product_check:
+            setting_X_product = "on"
+        else:
+            setting_X_product = "off"
+
+        setting_X_product_log_check = Model_ex.checkbox("setting_X_product_log")
+        if setting_X_product_log_check:
+            setting_X_product_log = "on"
+        else:
+            setting_X_product_log = "off"
+
+        setting_X_ratio_check = Model_ex.checkbox("setting_X_ratio")
+        if setting_X_ratio_check:
+            setting_X_ratio = "on"
+        else:
+            setting_X_ratio = "off"
+
+        setting_X_ratio_log_check = Model_ex.checkbox("setting_X_ratio_log")
+        if setting_X_ratio_log_check:
+            setting_X_ratio_log = "on"
+        else:
+            setting_X_ratio_log = "off"
+
+        setting_NORMAL_OR_LOG_check = Model_ex.checkbox("Usetting_NORMAL_OR_LOG_")
+        if setting_NORMAL_OR_LOG_check:
+            setting_NORMAL_OR_LOG = "on"
+        else:
+            setting_NORMAL_OR_LOG = "off"
+
+        setting_PCA_check = Model_ex.checkbox("setting_PCA")
+        if setting_PCA_check:
+            setting_PCA = "on"
+        else:
+            setting_PCA = "off"
+
+        setting_ICA_check = Model_ex.checkbox("setting_ICA")
+        if setting_ICA_check:
+            setting_ICA = "on"
+        else:
+            setting_ICA = "off"
+
+        setting_standard_scaler_check = Model_ex.checkbox("setting_standard_scaler")
+        if setting_standard_scaler_check:
+            setting_standard_scaler = "on"
+        else:
+            setting_standard_scaler = "off"
+
+    ##################################### feature_setting
+
+    if Model_Training_Process == 'Optional':
+        Model_ex.caption("Model training setting")
+        n_trials = int(Model_ex.slider('n_trials', 0, 1000, 100))
+        Fold_num = int(Model_ex.slider('Fold_num', 0, 10, 4))
+        test_size = int(Model_ex.slider("test_size (%)", 0, 100, 20))/100
+        random_state = int(Model_ex.slider('random_state', 0, 1000, 71))
+    else:
+        ##################################### Training settings
+        n_trials = 100 ### parameter tuning trial number
+        Fold_num = 4 ### model numbers (ensemble)
+        test_size=0.2 ### test size → 80% training, 20% test
+        random_state = 71 ### define random state
+        ##################################### Training settings
+
+
+    ########### Make class and compile setting in class feature_setting
+    feature_setting = Model_feature_setting(Model_algorithm, setting_X_raw, setting_X_log, setting_X_product, setting_X_product_log, setting_X_ratio, setting_X_ratio_log, setting_NORMAL_OR_LOG, \
+                    setting_PCA, setting_ICA, setting_standard_scaler)
+    Training_Setting = Model_Training_Setting(n_trials, Fold_num, test_size, random_state)
+    ########### Make class and compile setting in class feature_setting
+    return feature_setting, Training_Setting
+################################################# Model All Setting Class Define
 
 ################################################# Feature engeneering
 def feature_making(feature_setting, train_x, test_x, cv_x):
@@ -287,7 +502,6 @@ def feature_making(feature_setting, train_x, test_x, cv_x):
 def model_construction(feature_setting, params, train_x_valid, train_y_valid, cv_x, cv_y):
     #Name read
     Model_algorithm = feature_setting.ML_algorithm_name
-
     #####################モデルごとに推定をして行く
     if Model_algorithm == "LightGBM":
         # Datasetに入れて学習させる
@@ -301,6 +515,7 @@ def model_construction(feature_setting, params, train_x_valid, train_y_valid, cv
 
         ########### model construct & train
         if params == 0:
+            print("param-0")
             params = {
                 # 基本パラメータ
                 'boosting_type': 'gbdt',
@@ -308,9 +523,10 @@ def model_construction(feature_setting, params, train_x_valid, train_y_valid, cv
                 'metric': 'rmse',
                 'seed': 42,
             }
-            model = lgb.train(params, train_set, valid_sets=[train_set, val_set], evals_result=evals_result, valid_names=['train', 'eval'], verbose_eval=False)
+            model = lgb.train(params, train_set, valid_sets=[train_set, val_set], evals_result=evals_result, valid_names=['train', 'eval'], verbose_eval=True)
         else:
-            model = lgb.train(params, train_set, valid_sets=[train_set, val_set], evals_result=evals_result, valid_names=['train', 'eval'], verbose_eval=False)
+            print("param-1")
+            model = lgb.train(params, train_set, valid_sets=[train_set, val_set], evals_result=evals_result, valid_names=['train', 'eval'], verbose_eval=True)
         ########### model construct & train
 
     elif Model_algorithm == "NGBoost":
@@ -413,9 +629,6 @@ def predict_cv(params, feature_setting, Fold_num, train_x, train_y, test_x, test
         ###########################################特徴量の設定
         train_x_valid, test_x_valid, cv_x, sc, pca, ICA = feature_making(feature_setting, train_x_valid, test_x_valid, cv_x)
         ###########################################特徴量の設定
-
-        train_x_valid.to_excel('ipfewjfop.xlsx')
-        train_y_valid.to_excel('ipfecsawjfop.xlsx')
 
         ###########################################モデルの作成
         model, evals_result = model_construction(feature_setting, params, train_x_valid, train_y_valid, cv_x, cv_y)
@@ -555,10 +768,12 @@ def print_score(train_mean_score, test_mean_score, cv_mean_score):
 ################################################################################################ Model construction Main + Pickle
 
 #################################################モデルの定義
-def predict_model(elem, X_use, y, path_all_share, path_figure_all, feature_setting):
+def predict_model(elem, X_use, y, path_all_share, path_figure_all, feature_setting, Model_Training_Setting):
     #Scoreのデータを全て入れる
     Score_all = pd.Series([], dtype=pd.StringDtype())
     Score_all.name = elem
+
+    print(X_use)
 
     ############################################元素の決定 Data read
     #データの代入
@@ -569,10 +784,10 @@ def predict_model(elem, X_use, y, path_all_share, path_figure_all, feature_setti
     ############################################元素の決定 Data reads
 
     ##################################### Training settings
-    n_trials = 50 ### parameter tuning trial number
-    Fold_num = 4 ### model numbers (ensemble)
-    test_size=0.9 ### test size → 80% training, 20% test
-    random_state = 71 ### define random state
+    n_trials = Model_Training_Setting.n_trials ### parameter tuning trial number
+    Fold_num = Model_Training_Setting.Fold_num ### model numbers (ensemble)
+    test_size= Model_Training_Setting.test_size ### test size → 80% training, 20% test
+    random_state = Model_Training_Setting.random_state ### define random state
     Model_algorithm = feature_setting.ML_algorithm_name
     ##################################### Training settings
 
@@ -617,7 +832,6 @@ def predict_model(elem, X_use, y, path_all_share, path_figure_all, feature_setti
     global evals_result_append_best
     evals_result_append_best={}
     ############################optunaによるベイズ最適化
-    Fold_num = 4
     study = optuna.create_study() #load_if_exists=False 再度学習する場合，設定を変えている場合がほとんどだから。
     study.optimize(objective_define(feature_setting, Fold_num, train_x, train_y, test_x, test_y), n_trials=n_trials)
 
@@ -645,12 +859,12 @@ def predict_model(elem, X_use, y, path_all_share, path_figure_all, feature_setti
     #print_score
     print("########### Optune_tuned")
     #トレーニングの平均スコアを格納
-    Score_all["Default_Train_mean"] = scores[0]
-    Score_all["Default_Train_Dist_mean"] = scores_dist[0]
-    Score_all["Default_Test_mean"] = scores[1]
-    Score_all["Default_Test_Dist_mean"] = scores_dist[1]
-    Score_all["Default_CV_mean"] = scores[2]
-    Score_all["Default_CV_Dist_mean"] = scores_dist[2]
+    Score_all["Optuna_Train_mean"] = scores[0]
+    Score_all["Optuna_Train_Dist_mean"] = scores_dist[0]
+    Score_all["Optuna_Test_mean"] = scores[1]
+    Score_all["Optuna_Test_Dist_mean"] = scores_dist[1]
+    Score_all["Optuna_CV_mean"] = scores[2]
+    Score_all["Optuna_CV_Dist_mean"] = scores_dist[2]
     print_score(scores[0], scores[1], scores[2])
     print_score(scores_dist[0], scores_dist[1], scores_dist[2])
     ##################################### Print score
@@ -785,15 +999,15 @@ def predict_model(elem, X_use, y, path_all_share, path_figure_all, feature_setti
 ################################################################################################ Model construction Main + Pickle
 
 ################################################################################################ Main
-def __main__(today_date, mobile_elem, immobile_elem, Protolith_data, Protolith_loc_data, Protolith_loc_data_raw, feature_setting):
+def __main__(path_name, mobile_elem, immobile_elem, Protolith_data, Protolith_loc_data, Protolith_loc_data_raw, feature_setting, Training_Setting):
     ########################################################元素の数を計算
     #不動元素
     #一回全て代入
     use_element = mobile_elem + immobile_elem
     #######################################################ディレクトリの作成
     #pathとフォルダの準備
-    path_1 = "../models_" + today_date + '_ALL'
-    path_2 = "/" + str(immobile_elem).strip("[").strip("]").strip("'")
+    path_1 = path_name
+    path_2 = str(immobile_elem).strip("[").strip("]").strip("'")
     path_3 = "/" + str(mobile_elem).strip("[").strip("]").strip("'")
     #全体のpathの設定
     path_all_share = path_1 + path_2 + path_3
@@ -880,7 +1094,7 @@ def __main__(today_date, mobile_elem, immobile_elem, Protolith_data, Protolith_l
         #今回の流体移動元素の定義
         elem = mobile_elem[0]
         ########################################MODEL
-        model_all, Score_all, test_error_all, test_data_all = predict_model(elem, X_use, y,  path_all_share, path_figure_all, feature_setting)
+        model_all, Score_all, test_error_all, test_data_all = predict_model(elem, X_use, y,  path_all_share, path_figure_all, feature_setting, Training_Setting)
         ########################################MODEL  fin
 
         ############################################dataの保存
