@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Begin: Tue Mar  1 23:06:08 2022
-Final update: 2023/11/25
+Final update: 2024/09/18
 
 Author: 松野哲士 (Satoshi Matsuno), Tohoku university, Japan
 Contact: satoshi.matsuno.p2@dc.tohoku.ac.jp
@@ -59,6 +59,7 @@ index_col = Protolith_DATA_ex.slider('Input index_columns number', 0, 10, 0)
 header = Protolith_DATA_ex.slider('Input header number', 0, 10, 7)
 
 '''
+Same protocol can do with "0_BASE_Model_Construction.py"
 *******For dataset caution*******
 1. (Optional) Add "ANALYZED MATERIAL" and write WHOLE ROCK
 2. check index col and sample name (if duplicated, the sample will be delete automatically)
@@ -75,6 +76,12 @@ PRM_construction_Setting = Model_ex.selectbox("Construction Setting", ['Normal',
 Model_algorithm = Model_ex.selectbox("Model algorithm", ['LightGBM', 'NGBoost'])
 Model_Training_Process = Model_ex.selectbox("Model Training Setting", ['Default', 'Optional'])
 Minimum_combination_number = Model_ex.slider('Input header number', 1, 10, 4)
+if PRM_construction_Setting == "Optional": # ver 240918 Ratioデータに対応するため
+    # もし Ratio で推定を行う場合には、Input Outputに重複が存在しても良い形に変更する→Ratioに変更
+    PRM_construction_Setting_ratio_check = st.sidebar.checkbox("Ratio")
+    if PRM_construction_Setting_ratio_check:
+        PRM_construction_Setting = "Ratio"
+
 today_date = today_date + '_' + PRM_construction_Setting + '_' + Model_algorithm+ '_Mincomb_' + str(Minimum_combination_number)
 Model_ex.caption("Model Path: " + today_date)
 
@@ -111,19 +118,59 @@ if Start_Preprocessing:
     #pathの名前をつける
     path_name = "0_PRM_Model_Folder/" + Model_algorithm + "/" + today_date + '_ALL/'
     #save data take some secounds # Protolith dataのsave
-    _ = preprocessing_PRM.save_preprocessed_data(path_name, data_name, Whole_rock_RAW, Whole_rock_cannot_Normalize, Whole_rock_after_Normalize_PM, Whole_rock_after_Normalize_C1)
+    #_ = preprocessing_PRM.save_preprocessed_data(path_name, data_name, Whole_rock_RAW, Whole_rock_cannot_Normalize, Whole_rock_after_Normalize_PM, Whole_rock_after_Normalize_C1)
     print("FIN: Preprocessing")
 
+
+    """
+    Caution when determing the input/output elements
+    主要元素の設定を"Ti"などとした場合にエラーが出る　
+    -> Applyするときに、Inputの設定で問題が生じるため：具体的にはPMノーマライズ前に元素設定をするため、Tiではエラーが発生する
+    ->"TiO2"のように元素を設定するようにすること
+
+    If you set the main element to “Ti” or something similar, you will get an error　
+    -> When applying, there is a problem with the Input settings: specifically, because the element is set before PM normalization, an error occurs with Ti
+    -> Set the element like “TiO2”.
+    """
     ##################### Model Element setting
     #### initial setting-> element
     elem_all = ['Rb', 'Ba', 'Th', 'U', 'Nb', 'K', 'La', 'Ce', 'Pb', 'Sr', 'P', 'Nd', 'Zr', 'Ti', 'Y', 'Yb', 'Lu', 'SiO2', 'Al2O3', 'MgO', 'Na2O', 'P2O5', 'CaO', 'MnO', 'FeO', 'K2O']
     immobile_elem_all = ['Zr', 'Th', 'Ti', 'Nb']
 
     elem_all = st.multiselect("Choose All elem", Whole_rock_RAW.columns, elem_all)
-    immobile_elem_all = st.multiselect("Choose Immobile elem", elem_all, immobile_elem_all)
-    mobile_elem_all = [elem for elem in elem_all if elem not in immobile_elem_all]
+    immobile_elem_all = st.multiselect("Choose Immobile elem", Whole_rock_RAW.columns, immobile_elem_all)
+
+    # ver 240918 Ratioの時は選択されたElement全てをMobile elementと定義（input自身を推定するモデル）
+    if PRM_construction_Setting == 'Ratio':
+        mobile_elem_all = elem_all
+    else: # ver 240918 その他（NormalとOptional）の時は elem_allからimmobile elemに含まれない元素を探す処理
+        mobile_elem_all = [elem for elem in elem_all if elem not in immobile_elem_all]
     #### initial setting-> element
     ##################### Model Element setting
+
+    ############################################################################ For Ratio model ver 240918
+    """
+    Caution for Ratio ver240707
+    例えば、Ti, Nb, Zr, Y, Thの比 → Zr濃度 を求めることは想定していない（基本的に重複削除の方針）。
+    そのため、Ratioデータについては"_ (アンダーバー)"を末尾につけることで、他元素かつPM normalizationに含まれない元素として例外処理する。
+    例えば、Ti, Nb, Zr, Y, Thの比 → Zr_ という形として記述する
+
+    For example, the ratio of Ti, Nb, Zr, Y, and Th → Zr concentration is not assumed to be obtained (basically, the policy is to delete duplicates).
+    For this reason, the “_ (underscore)” at the end of the Ratio data is used to treat it as an exception as an element other than the other elements and an element not included in PM normalization.
+    For example, the ratio of Ti, Nb, Zr, Y, and Th is written as Zr_.
+    """
+    if PRM_construction_Setting == 'Ratio':
+        # 重複元素を_をつけて別元素として記録
+        duplicates, duplicates_dict, mobile_elem_all = construction_PRM.check_and_modify_duplicates(mobile_elem_all, immobile_elem_all)
+        duplicates_df = Whole_rock_RAW[duplicates]
+        duplicates_df.rename(columns=duplicates_dict, inplace=True)
+        duplicates_df = duplicates_df.rename(columns=duplicates_dict)
+        
+        # elem_allとWhole_rock_RAWに追加
+        elem_all = elem_all+[elem + '_' for elem in duplicates]
+        mobile_elem_all = elem_all
+        Whole_rock_RAW = pd.concat([Whole_rock_RAW, duplicates_df], axis=1)
+    ############################################################################ For Ratio model ver 240918
 
     #### list elem_allに入っていない要素をWhole_rock_after_Normalize_PM.columnsから見つけ出す
     # 基本的にはMajor元素に対する処理
@@ -180,6 +227,10 @@ if Start_Preprocessing:
         error_list.to_excel(path_name+"/0_error_list.xlsx")
             ################################################################# Main
         ###################################################### Model Active
+        
+        #save data take some secounds # Protolith dataのsave
+        _ = preprocessing_PRM.save_preprocessed_data(path_name, data_name, Whole_rock_RAW, Whole_rock_cannot_Normalize, Whole_rock_after_Normalize_PM, Whole_rock_after_Normalize_C1)
+
 else:
     pass
 #################################################################################### Page control

@@ -197,6 +197,13 @@ Caution when determing the input/output elements
 elem_all = ["TiO2", "Nb", "Zr", "Y", "Th", "SiO2", "K2O", 'Rb', 'Ba', 'Pb', "Sr", 'Al2O3', 'MgO', 'Na2O', 'P2O5', 'CaO', 'MnO', 'FeO']
 mobile_elem_all = elem_all
 immobile_elem_all = ["TiO2", 'Al2O3', "Nb", "Zr", "Y", "Th"] # , 
+
+# ver 240918 Ratioの時は選択されたElement全てをMobile elementと定義（input自身を推定するモデル）
+#if PRM_construction_Setting == 'Ratio':
+#    mobile_elem_all = elem_all
+#else: # ver 240918 その他（NormalとOptional）の時は elem_allからimmobile elemに含まれない元素を探す処理
+#    mobile_elem_all = [elem for elem in elem_all if elem not in immobile_elem_all]
+
 ######################### initial setting-> element
 
 """
