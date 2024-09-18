@@ -16,6 +16,11 @@ This application not only allows users to **easily handle PRMs** through a user-
 
 このアプリケーションは、**ユーザーフレンドリーなGUI** を通じてPRMsを簡単に扱うことができるだけでなく、**組成データの正規化と可視化のためのツール** も提供します。これらのツールは、シンプルな**ファイルドロップ機能**を通じて利用可能です。
 
+## UPDATE History
+
+2024/09/15 ver1.3 **Major Update**: Model construction based on GUI are enable
+2023/11/23 The first release of PRMs
+
 ## Paper
 This PRM methodology is based on the research paper:
 * Matsuno, S., Uno, M., Okamoto, A. et al. Machine-learning techniques for quantifying the protolith composition and mass transfer history of metabasalt. Sci Rep 12, 1385 (2022). [https://doi.org/10.1038/s41598-022-05109-x](https://doi.org/10.1038/s41598-022-05109-x)
