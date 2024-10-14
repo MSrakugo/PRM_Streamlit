@@ -35,7 +35,7 @@ Key words:
 
 **Geochemistry, Fluid-rock interaction, Element transfer, Quantitative evaluation, Machine-learning techniques**
 
-## Application Exaples
+## Application Examples
 
 Seafloor Alteration Governed by Oceanic Crustal Age and Redox Conditions: Insights from Machine Learning-based Elemental Transfer Analyses. Matsuno, S., Uno, M., Okamoto, A [(Under review)](https://essopenarchive.org/users/708320/articles/692946-seafloor-alteration-governed-by-oceanic-crustal-age-and-redox-conditions-insights-from-machine-learning-based-elemental-transfer-analyses)
 
