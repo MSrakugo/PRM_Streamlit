@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Begin: Tue Mar  1 23:06:08 2022
-Final update: 2023/11/21
+Final update: 2024/10/29
 
 Author: 松野哲士 (Satoshi Matsuno), Tohoku university, Japan
 Contact: satoshi.matsuno.p2@dc.tohoku.ac.jp
@@ -148,6 +148,19 @@ else:
 
 Ratio_flag = Model_Setting.checkbox("Ratio")
 ###### Select element
+
+############################################################################## Output variation check ver 241029 Display for Main 
+###### DEFINE Model path
+model_path_output_check = "0_PRM_Model_Folder/"+ Algorithm_name +"/" + Model_name+ "/" + str(immobile_elem).strip("[").strip("]").strip("'")
+folder_output_variation_name = glob.glob(model_path_output_check+"/**")
+output_variation_list = []
+for output_variation in folder_output_variation_name:
+    output_variation_list.append(output_variation.split("/")[-1]) # / でSplitしたlistの一番最後をappend
+Model_info.write("Model Output Variation:")
+Model_info.table(output_variation_list) # check output_variation
+###### Input variation check
+############################################################################## Output variation check ver 241029 Display for Main 
+
 ###### For ratio model ->Input自身を推定する
 ######################## Model setting
 
