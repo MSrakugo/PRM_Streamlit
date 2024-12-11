@@ -111,7 +111,7 @@ def Error_Distribution_Figure(path_model, path, mobile_elem_all, good_range_elem
             data['Tectonic setting'] = data['SAMPLE_INFO']
 
             # 相関係数を求める
-            corr_each_elem = data[['RAW', 'predict']].apply(lambda x : np.log10(x)).corr().loc['RAW']['predict']
+            corr_each_elem = r2_score(data['RAW'].apply(lambda x : np.log10(x)), data['predict'].apply(lambda x : np.log10(x)))
 
             ################################################################ Setting
             #元素によって範囲を変更 histgram
@@ -218,7 +218,7 @@ def Usual_Scatter_Plot(path_model, path, mobile_elem_all, good_range_elem, TECTO
 
         # 相関係数を求める
         corr_each_elem = r2_score(data['RAW'].apply(lambda x : np.log10(x)), data['predict'].apply(lambda x : np.log10(x)))
-        corr_compile.loc['R2_score',define_mobile_elem]=corr_each_elem*corr_each_elem
+        corr_compile.loc['R2_score',define_mobile_elem]=corr_each_elem
         print(corr_compile.loc['R2_score',define_mobile_elem])
         ################################################################ Setting
         legend_flag = False
@@ -251,7 +251,7 @@ def Usual_Scatter_Plot(path_model, path, mobile_elem_all, good_range_elem, TECTO
         ax.tick_params(which = 'minor', length = font_size_label/6, width = font_size_label/30)
         ax.get_xaxis().set_tick_params(pad=font_size_label/2)
 
-        ax.text(0.95, 0.05, 'R={:.3f}'.format(corr_each_elem), horizontalalignment='right', transform=ax.transAxes, fontsize = 50)
+        ax.text(0.95, 0.05, r'$R^2={:.3f}$'.format(corr_each_elem), horizontalalignment='right', transform=ax.transAxes, fontsize = 50)
 
     plt.tight_layout()
     plt.savefig(now_figure_path+'/0_raw_vs_predict.pdf', bbox_inches='tight')
@@ -320,6 +320,11 @@ def NGBoost_Scatter_Plot(path_model, path, mobile_elem_all, good_range_elem, TEC
         data['Tectonic setting_num'] = data['SAMPLE_INFO']
         data["RAW"] = data["RAW"].apply(lambda x : np.log10(x))
         data["predict"] = data["predict"].apply(lambda x : np.log10(x))
+
+        # 相関係数を求める
+        corr_each_elem = r2_score(data['RAW'], data['predict'])
+        corr_compile.loc['R2_score',define_mobile_elem]=corr_each_elem
+        print(corr_compile.loc['R2_score',define_mobile_elem])
         ################################################################ Setting
         legend_flag = False
         if define_mobile_elem == 'Rb':
@@ -351,10 +356,17 @@ def NGBoost_Scatter_Plot(path_model, path, mobile_elem_all, good_range_elem, TEC
         ax.tick_params(which = 'major', length = font_size_label/3, width = font_size_label/15)
         ax.tick_params(which = 'minor', length = font_size_label/6, width = font_size_label/30)
         ax.get_xaxis().set_tick_params(pad=font_size_label/2)
+
+        ax.text(0.95, 0.05, r'$R^2={:.3f}$'.format(corr_each_elem), horizontalalignment='right', transform=ax.transAxes, fontsize = 50)
+
     plt.tight_layout()
     plt.savefig(now_figure_path+'/0_raw_vs_predict_std_color.pdf', bbox_inches='tight')
     plt.savefig(now_figure_path+'/0_raw_vs_predict_std_color.jpg', bbox_inches='tight')
     st.pyplot(fig)
     plt.clf()
     plt.close()
+
+    ##output corr
+    corr_compile.to_excel(now_figure_path+'/0_corr_compile.xlsx')
+    corr_compile
 

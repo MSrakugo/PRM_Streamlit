@@ -427,14 +427,23 @@ def Spidergram_ragne_as_error_bar(data, range, scale, legend, color, style, labe
 
 
 
-def PM_to_ppm(data):
+def PM_to_ppm(data): # ver 241211
     now_data = data.copy()
     for_normalize_data = pd.read_excel("List/Primitive_Mantle _ C1 Chondrite.xlsx", index_col=0)
     for_normalize_data = for_normalize_data.loc["PM(SM89)"]
     for elem in data.columns:
-        try:
+        # 普通のデータの処理
+        try: 
             value=for_normalize_data[elem]
             now_data[elem]= now_data[elem]*value
+        except:
+            print("This elem do not have value of PM: " + elem)
+
+        # Ratio dataに対する処理　ex. Zr -> Zr_ として記録されている
+        elem_ratio = elem + "_"
+        try: # 普通のデータの処理
+            value=for_normalize_data[elem] # ここは、通常のelemを使って、elemのPM valueを抽出
+            now_data[elem_ratio]= now_data[elem_ratio]*value
         except:
             print("This elem do not have value of PM: " + elem)
 

@@ -224,12 +224,19 @@ if PRM_construction_Setting == 'Ratio':
     mobile_elem_all = elem_all
     Whole_rock_RAW = pd.concat([Whole_rock_RAW, duplicates_df], axis=1)
 
+    # Compile ratio data
+    ratio_self_est = duplicates
+    ratio_self_est_name = [elem + '_' for elem in duplicates]
+
 #### list elem_allに入っていない要素をWhole_rock_after_Normalize_PM.columnsから見つけ出す
 # 基本的にはMajor元素に対する処理
 columns = Whole_rock_after_Normalize_PM.columns
 # elem_all に含まれている要素で、columns に含まれていない要素を探す
 missing_elements = [elem for elem in elem_all if elem not in columns]
-Whole_rock_after_Normalize_PM[missing_elements] = Whole_rock_RAW[missing_elements].copy() # Majoprを入れる
+Whole_rock_after_Normalize_PM[missing_elements] = Whole_rock_RAW[missing_elements].copy() # Majorを入れる
+
+"""ver 241211 Modified for Ratio data -> PM Normalizeを実装: いままではPM normalizeせずにモデルを構築していた""" 
+Whole_rock_after_Normalize_PM[ratio_self_est_name] = Whole_rock_RAW[ratio_self_est].copy() # ex. "Zr_"もノーマライズされた値によって推定
 #### list elem_allに入っていない要素をWhole_rock_after_Normalize_PM.columnsから見つけ出す
 
 #### Compile use data
