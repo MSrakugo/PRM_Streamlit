@@ -236,7 +236,7 @@ missing_elements = [elem for elem in elem_all if elem not in columns]
 Whole_rock_after_Normalize_PM[missing_elements] = Whole_rock_RAW[missing_elements].copy() # Majorを入れる
 
 """ver 241211 Modified for Ratio data -> PM Normalizeを実装: いままではPM normalizeせずにモデルを構築していた""" 
-Whole_rock_after_Normalize_PM[ratio_self_est_name] = Whole_rock_RAW[ratio_self_est].copy() # ex. "Zr_"もノーマライズされた値によって推定
+Whole_rock_after_Normalize_PM[ratio_self_est_name] = Whole_rock_after_Normalize_PM[ratio_self_est].copy() # ex. "Zr_"もノーマライズされた値によって推定
 #### list elem_allに入っていない要素をWhole_rock_after_Normalize_PM.columnsから見つけ出す
 
 #### Compile use data

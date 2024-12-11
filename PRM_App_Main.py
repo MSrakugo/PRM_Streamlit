@@ -20,7 +20,8 @@ st.markdown("This is a **GUI interface** for Protolith Reconstruction Models.")
 st.markdown("You can **construct PRMs** and **predict protolith composition** from alterd/metamorphosed rocks by yourself")
 
 st.markdown('> **1st step**   : (Optional) To **construct** PRMs by your suitable data')
-st.markdown('> **2nd step**   : **Read** your compositional data and **Run** PRMs')
+st.markdown('> **2nd step**   : (Optional) **Evaluation and Explain** selected PRMs with test dataset')
+st.markdown('> **3rd step**   : **Read** your compositional data and **Run** PRMs')
 
 # PRMsの解説
 
