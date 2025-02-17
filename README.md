@@ -39,7 +39,8 @@ Key words:
 
 ## Application Examples
 
-Seafloor Alteration Governed by Oceanic Crustal Age and Redox Conditions: Insights from Machine Learning-based Elemental Transfer Analyses. Matsuno, S., Uno, M., Okamoto, A [(Under review)](https://essopenarchive.org/users/708320/articles/692946-seafloor-alteration-governed-by-oceanic-crustal-age-and-redox-conditions-insights-from-machine-learning-based-elemental-transfer-analyses)
+Matsuno, Satoshi, Masaoki Uno, and Atsushi Okamoto. 2025. “The Control of Oceanic Crustal Age and Redox Conditions on Seafloor Alteration: Examples from a Quantitative Comparison of Elemental Mass Transport in the South and Northwest Pacific.” Chemical Geology 678 (122651): 122651.
+(https://doi.org/10.1016/j.chemgeo.2025.122651)
 
 ## Features
 * **Protolith Reconstruction Models (PRMs)**: Accurately estimate the protolith composition from a limited number of input elements of altered or metamorphosed samples. The default model focuses on basalt trace-element compositions.

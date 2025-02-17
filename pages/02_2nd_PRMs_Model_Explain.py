@@ -107,6 +107,7 @@ Start_Figure_Making = st.button("Start")
 if Start_Figure_Making:
     prm_ex.Error_Distribution_Figure(path_model, path, mobile_elem_all, good_range_elem, TECTONIC_list)
     prm_ex.Usual_Scatter_Plot(path_model, path, mobile_elem_all, good_range_elem, TECTONIC_list)
+    prm_ex.Usual_Scatter_Plot_norm(path_model, path, mobile_elem_all, good_range_elem, TECTONIC_list)
 
     if Algorithm_name == "NGBoost":
         prm_ex.NGBoost_Scatter_Plot(path_model, path, mobile_elem_all, good_range_elem, TECTONIC_list)

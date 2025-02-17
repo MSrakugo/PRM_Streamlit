@@ -1,10 +1,12 @@
 .DS_Store
 venv/
 __pycache__
-0_NoteBook
-0_PRM_Model_Folder/NGBoost
-0_PRM_Model_Folder/LightGBM
-0_PRM_Model_Folder/論文用比較
+0_NoteBook/
+0_PRM_Model_Folder/NGBoost/
+0_PRM_Model_Folder/LightGBM/
+0_PRM_Model_Folder/論文用比較/
 0_PRM_Model_Folder/.DS_Store
 pages/OLD/
 0_Model_Construction_Protolith_Composition_Data/UNO_Project/
+Kelley_Data/NGBoost/
+picture/
