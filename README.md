@@ -39,7 +39,7 @@ Key words:
 
 ## Application Examples
 
-*Matsuno, Satoshi, Masaoki Uno, and Atsushi Okamoto. 2025. “The Control of Oceanic Crustal Age and Redox Conditions on Seafloor Alteration: Examples from a Quantitative Comparison of Elemental Mass Transport in the South and Northwest Pacific.” Chemical Geology 678 (122651): 122651.(https://doi.org/10.1016/j.chemgeo.2025.122651)
+* Matsuno, Satoshi, Masaoki Uno, and Atsushi Okamoto. 2025. “The Control of Oceanic Crustal Age and Redox Conditions on Seafloor Alteration: Examples from a Quantitative Comparison of Elemental Mass Transport in the South and Northwest Pacific.” Chemical Geology 678 (122651): 122651.(https://doi.org/10.1016/j.chemgeo.2025.122651)
 * [Source code](https://github.com/MSrakugo/Matsuno_2025a_Seafloor_Alteration)
 
 ## Features
