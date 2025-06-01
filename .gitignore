@@ -11,3 +11,23 @@ pages/OLD/
 0_Model_Construction_Protolith_Composition_Data/PRM_For_Metabasalt/Data Visualization
 Kelley_Data/NGBoost/
 picture/
+
+# Python #
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.py[cod] # .pyc, .pyo, .pyd をまとめて指定
+*$py.class
+
+# Poetry / 仮想環境 #
+.venv/          # Poetryがプロジェクト内に作る仮想環境 (poetry config virtualenvs.in-project true の場合)
+dist/           # poetry build で作成される配布物
+build/
+*.egg-info/
+
+# macOS #
+.DS_Store
+
+# ダウンロードしたライブラリのホイールファイルなど (通常はコミットしません) #
+*.whl
