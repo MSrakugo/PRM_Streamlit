@@ -64,8 +64,8 @@ import matplotlib.pyplot as plt
 data_name = 'Protolith' # INPUT DATA NAME
 data_name = '0_' + data_name
 #uploaded_file = ['0_Model_Construction_Protolith_Composition_Data/PRM_For_Metabasalt/PetDB_Metabasalt_20231126.xlsx', ]
-#uploaded_file = ['0_Model_Construction_Protolith_Composition_Data/PRM_For_Metabasalt/PetDB_Basaltic_2024-05-10.xlsx', ]
-uploaded_file = ["0_Model_Construction_Protolith_Composition_Data/UNO_Project/Xpel2_Preprocessed_ver240707.xlsx"]
+uploaded_file = ['0_Model_Construction_Protolith_Composition_Data/PRM_For_Metabasalt/PetDB_Basaltic_2024-05-10.xlsx', ]
+#uploaded_file = ["0_Model_Construction_Protolith_Composition_Data/UNO_Project/Xpel2_Preprocessed_ver240707.xlsx"]
 
 index_col = [0, ]
 header = [0, ] # petdb
@@ -236,7 +236,7 @@ missing_elements = [elem for elem in elem_all if elem not in columns]
 Whole_rock_after_Normalize_PM[missing_elements] = Whole_rock_RAW[missing_elements].copy() # Majorを入れる
 
 """ver 241211 Modified for Ratio data -> PM Normalizeを実装: いままではPM normalizeせずにモデルを構築していた""" 
-Whole_rock_after_Normalize_PM[ratio_self_est_name] = Whole_rock_after_Normalize_PM[ratio_self_est].copy() # ex. "Zr_"もノーマライズされた値によって推定
+Whole_rock_after_Normalize_PM[ratio_self_est_name] = Whole_rock_after_Normalize_PM[ratio_self_est].copy() # ex. "Zr_"もノーマライズされた値によって比を計算し、推定に使う
 #### list elem_allに入っていない要素をWhole_rock_after_Normalize_PM.columnsから見つけ出す
 
 #### Compile use data
