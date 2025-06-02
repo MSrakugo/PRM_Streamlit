@@ -531,7 +531,7 @@ def model_construction(feature_setting, params, train_x_valid, train_y_valid, cv
 
     elif Model_algorithm == "NGBoost":
         if params == 0:
-            Base_model = DecisionTreeRegressor(criterion='mse')
+            Base_model = DecisionTreeRegressor(criterion='squared_error')
             params = {
                 "Base":Base_model,
                 "random_state":0,
@@ -541,7 +541,7 @@ def model_construction(feature_setting, params, train_x_valid, train_y_valid, cv
             model = ngboost.NGBRegressor(**params)
             model.fit(train_x_valid, train_y_valid, X_val=cv_x, Y_val=cv_y,)
         else:
-            Base_model = DecisionTreeRegressor(criterion='mse',\
+            Base_model = DecisionTreeRegressor(criterion='squared_error',\
                 max_depth = params['max_depth'],
                 min_samples_leaf = params['min_samples_leaf'],
                 min_samples_split = params['min_samples_split'],
@@ -1024,8 +1024,8 @@ def __main__(path_name, mobile_elem, immobile_elem, Protolith_data, Protolith_lo
             pass
 
     ########### 何回でも作り直すか（0）、一度作ったモデルはそのままか（1） exist=>Default=1
-    flag_for_folder_exist = 0
-    #flag_for_folder_exist = 1
+    # 上記で確認しているので、ここで下を外せば必ず作ることになる。
+    #flag_for_folder_exist = 0
     ###########
 
     ##########################################################################モデルの作成

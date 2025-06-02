@@ -79,14 +79,14 @@ SAMPLE_INFO = 'Protolith'
 '''
 
 ###################################################### Model setting
-#today_date = '231005_for_normal_model'
+today_date = '250602_for_normal_model'
 #today_date = str(datetime.date.today())+"UNO_PROJECT"
-today_date = str(datetime.date.today())+"UNO_PROJECT"
-PRM_construction_Setting = 'Ratio' ## raw->normal, ratio->ratio choice=['Normal', 'Ratio', 'Optional']
-Model_algorithm = 'LightGBM'  ### 'LightGBM' or 'NGBoost'
+#today_date = str(datetime.date.today())+"UNO_PROJECT"
+PRM_construction_Setting = 'Normal' ## raw->normal, ratio->ratio choice=['Normal', 'Ratio', 'Optional']
+Model_algorithm = 'NGBoost'  ### 'LightGBM' or 'NGBoost'
 Model_Training_Process = 'Default' # Model_ex.selectbox("Model Training Setting", ['Default', 'Optional'])
 
-Minimum_combination_number = 6
+Minimum_combination_number = 4
 today_date = today_date + '_' + PRM_construction_Setting + '_' + Model_algorithm+ '_Mincomb_' + str(Minimum_combination_number)
 
 # Define Model Setting
@@ -182,10 +182,10 @@ Caution when determing the input/output elements
 """
 
 # Normal LightGBM
-#elem_all = ['Rb', 'Ba', 'Th', 'U', 'Nb', 'K', 'La', 'Ce', 'Pb', 'Sr', 'P', 'Nd', 'Zr', 'Ti', 'Y', 'Yb', 'Lu', 'SiO2', 'Al2O3', 'MgO', 'Na2O', 'P2O5', 'CaO', 'K2O', 'MnO', 'FeO']
-#mobile_elem_all = ['Rb', 'Ba', 'Th', 'U', 'Nb', 'K', 'La', 'Ce', 'Pb', 'Sr', 'P', 'Nd', 'Zr', 'Ti', 'Y', 'Yb', 'Lu', 'SiO2', 'Al2O3', 'MgO', 'Na2O', 'P2O5', 'CaO',  'K2O', 'MnO', 'FeO',]
+elem_all = ['Rb', 'Ba', 'Th', 'U', 'Nb', 'K', 'La', 'Ce', 'Pb', 'Sr', 'P', 'Nd', 'Zr', 'Ti', 'Y', 'Yb', 'Lu', 'SiO2', 'Al2O3', 'MgO', 'Na2O', 'P2O5', 'CaO', 'K2O', 'MnO', 'FeO']
+mobile_elem_all = ['Rb', 'Ba', 'Th', 'U', 'Nb', 'K', 'La', 'Ce', 'Pb', 'Sr', 'P', 'Nd', 'Zr', 'Ti', 'Y', 'Yb', 'Lu', 'SiO2', 'Al2O3', 'MgO', 'Na2O', 'P2O5', 'CaO',  'K2O', 'MnO', 'FeO',]
 #immobile_elem_all = ['Zr', 'Th', 'Ti', 'Nb', 'La', 'Ce', 'Nd', 'Yb', 'Lu']
-#immobile_elem_all = ['Zr', 'Th', 'Ti', 'Nb']
+immobile_elem_all = ['Zr', 'Th', 'Ti', 'Nb']
 #immobile_elem_all = ['Zr', 'Ti',]
 
 # Ratio
@@ -194,9 +194,9 @@ Caution when determing the input/output elements
 #immobile_elem_all = ['Zr', 'Th', 'Ti', 'Nb', 'Al2O3', 'Cr', ]
 
 #elem_all = ["Ti", "Nb", "Zr", "Y", "Th", "SiO2", "Al2O3", "MnO", "MgO", "CaO", "Na2O", "K2O", 'Rb', 'Ba', 'U', 'La', 'Ce', 'Pb', 'Sr', 'P', 'Nd', 'Yb', 'Lu',]
-elem_all = ["TiO2", "Nb", "Zr", "Y", "Th", "SiO2", "K2O", 'Rb', 'Ba', 'Pb', "Sr", 'Al2O3', 'MgO', 'Na2O', 'P2O5', 'CaO', 'MnO', 'FeO']
-mobile_elem_all = elem_all
-immobile_elem_all = ["TiO2", 'Al2O3', "Nb", "Zr", "Y", "Th"] # , 
+#elem_all = ["TiO2", "Nb", "Zr", "Y", "Th", "SiO2", "K2O", 'Rb', 'Ba', 'Pb', "Sr", 'Al2O3', 'MgO', 'Na2O', 'P2O5', 'CaO', 'MnO', 'FeO']
+#mobile_elem_all = elem_all
+#immobile_elem_all = ["TiO2", 'Al2O3', "Nb", "Zr", "Y", "Th"] # , 
 
 # ver 240918 Ratioの時は選択されたElement全てをMobile elementと定義（input自身を推定するモデル）
 #if PRM_construction_Setting == 'Ratio':
@@ -236,7 +236,8 @@ missing_elements = [elem for elem in elem_all if elem not in columns]
 Whole_rock_after_Normalize_PM[missing_elements] = Whole_rock_RAW[missing_elements].copy() # Majorを入れる
 
 """ver 241211 Modified for Ratio data -> PM Normalizeを実装: いままではPM normalizeせずにモデルを構築していた""" 
-Whole_rock_after_Normalize_PM[ratio_self_est_name] = Whole_rock_after_Normalize_PM[ratio_self_est].copy() # ex. "Zr_"もノーマライズされた値によって比を計算し、推定に使う
+if PRM_construction_Setting == 'Ratio':
+    Whole_rock_after_Normalize_PM[ratio_self_est_name] = Whole_rock_after_Normalize_PM[ratio_self_est].copy() # ex. "Zr_"もノーマライズされた値によって比を計算し、推定に使う
 #### list elem_allに入っていない要素をWhole_rock_after_Normalize_PM.columnsから見つけ出す
 
 #### Compile use data
@@ -268,6 +269,8 @@ for immobile_elem, mobile_elem_list in zip(immobile_all_list, mobile_all_list):
 
     for mobile_elem in mobile_elem_list:
         mobile_elem = [mobile_elem]
+
+        #construction_PRM.__main__(path_name, mobile_elem, immobile_elem, Protolith_data, Protolith_location_data, Protolith_location_data, feature_setting, Training_Setting)
         try:
             construction_PRM.__main__(path_name, mobile_elem, immobile_elem, Protolith_data, Protolith_location_data, Protolith_location_data, feature_setting, Training_Setting)
         except:
