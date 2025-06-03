@@ -511,9 +511,18 @@ def model_construction(feature_setting, params, train_x_valid, train_y_valid, cv
 
         ### 学習曲線を記録
         evals_result = {}
-        ###　　学習曲線を記録
+        ###　学習曲線を記録
 
-        ########### model construct & train
+        # コールバックを定義します
+        callbacks_list = [
+            lgb.callback.record_evaluation(evals_result),  # 評価結果を格納するため
+        ]
+
+        # verbose_eval の機能を実現 modified ver 250603 for LightGBM 4.0以上に対応
+        # verbose_eval=True の場合、各イテレーションで出力します:
+        callbacks_list.append(lgb.callback.log_evaluation(period=50)) # 50回おきにイテレーションを出力
+
+        ########### model construct & train　modified ver 250603 for LightGBM 4.0以上に対応
         if params == 0:
             print("param-0")
             params = {
@@ -523,10 +532,18 @@ def model_construction(feature_setting, params, train_x_valid, train_y_valid, cv
                 'metric': 'rmse',
                 'seed': 42,
             }
-            model = lgb.train(params, train_set, valid_sets=[train_set, val_set], evals_result=evals_result, valid_names=['train', 'eval'], verbose_eval=True)
+            model = lgb.train(params,
+                            train_set,
+                            valid_sets=[train_set, val_set],
+                            callbacks=callbacks_list,
+                            valid_names=['train', 'eval'])
         else:
             print("param-1")
-            model = lgb.train(params, train_set, valid_sets=[train_set, val_set], evals_result=evals_result, valid_names=['train', 'eval'], verbose_eval=True)
+            model = lgb.train(params,
+                            train_set,
+                            valid_sets=[train_set, val_set],
+                            callbacks=callbacks_list,
+                            valid_names=['train', 'eval'])
         ########### model construct & train
 
     elif Model_algorithm == "NGBoost":

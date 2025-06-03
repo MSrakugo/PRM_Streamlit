@@ -1,7 +1,11 @@
 .DS_Store
 venv/
 __pycache__
-0_NoteBook/
+
+# Notebookを公開
+0_NoteBook/OLD
+0_NoteBook_Close/
+
 0_PRM_Model_Folder/NGBoost/
 0_PRM_Model_Folder/LightGBM/
 0_PRM_Model_Folder/論文用比較/
@@ -28,5 +32,7 @@ build/
 
 # macOS #
 .DS_Store
+
 *.whl
 ._*
+.ipynb*
