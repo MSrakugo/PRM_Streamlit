@@ -79,11 +79,11 @@ SAMPLE_INFO = 'Protolith'
 '''
 
 ###################################################### Model setting
-today_date = '250602_for_normal_model'
+today_date = '250603_for_normal_model_change_Seed'
 #today_date = str(datetime.date.today())+"UNO_PROJECT"
 #today_date = str(datetime.date.today())+"UNO_PROJECT"
 PRM_construction_Setting = 'Normal' ## raw->normal, ratio->ratio choice=['Normal', 'Ratio', 'Optional']
-Model_algorithm = 'NGBoost'  ### 'LightGBM' or 'NGBoost'
+Model_algorithm = 'LightGBM'  ### 'LightGBM' or 'NGBoost'
 Model_Training_Process = 'Default' # Model_ex.selectbox("Model Training Setting", ['Default', 'Optional'])
 
 Minimum_combination_number = 4
