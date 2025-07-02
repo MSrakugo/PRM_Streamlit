@@ -48,75 +48,108 @@ Key words:
   * In the near future, I plan to update this application to enable model construction with your customized datasets.
 * **User-Friendly Interface**: The application is intuitively designed, ensuring ease of use for individuals with different levels of technical expertise.
 
-## Requirement
-Before running the application, ensure you have the following requirements installed:
+## Requirements
 
-- Python 3.x
-- Streamlit
-- LightGBM
-- Other dependencies listed in `requirements.txt`
+* **Python 3.11**
+* **Poetry 2.0 or higher**:
+  [Official documentation](https://python-poetry.org/docs/)
 
-Note: Python 3.x and pip should be installed on your system.
+## How to use (with Poetry)
 
-## How to use
+These instructions assume you have met the requirements listed above.
 
-To use this application, follow these steps:
-
-1. **Download the ZIP file or Clone the Repository**
-    - To download as ZIP, visit [GitHub repository](https://github.com/MSrakugo/PRM_Streamlit), click on 'Code' and then 'Download ZIP'. After downloading, extract the ZIP file.
-      - Alternatively, clone the repository using:
+1.  **Clone the Repository**
+    * Clone the repository to your local machine:
         ```bash
         git clone https://github.com/MSrakugo/PRM_Streamlit
         ```
-    - Navigate to the folder using Terminal:
-      ```bash
-      cd [Your Repository Directory]
-      ```
+    * Navigate to the newly created directory:
+        ```bash
+        cd PRM_Streamlit
+        ```
 
-2. **(Optional) Build a Virtual Environment in Python**
-    - It's recommended to create a virtual environment to keep dependencies required by different projects separate and organized. Use the following commands to create and activate a virtual environment:
-      ```bash
-      python -m venv venv
-      source venv/bin/activate  # On Windows use `venv\Scripts\activate`
-      ```
+2.  **Install Dependencies**
+    * Poetry will read the `pyproject.toml` file, create a dedicated virtual environment using Python 3.11, and install all necessary libraries automatically.
+        ```bash
+        poetry install --no-root
+        ```
 
-3. **Install Dependencies**
-    - Install the necessary libraries specified in the `requirements.txt` file:
-      ```bash
-      pip install -r requirements.txt
-      ```
+3.  **Run the Application**
+    * To run the Streamlit application within the virtual environment managed by Poetry, use the `poetry run` command:
+        ```bash
+        poetry run streamlit run PRM_App_Main.py
+        ```
+    * The application will start, and you can access it in your web browser, usually at `http://localhost:8501`.
 
-4. **Run the Application**
-    - Launch the application with the following command:
-      ```bash
-      streamlit run PRM_App_Main.py
-      ```
+### (Optional) Working directly within the virtual environment
 
-    - The application will start running locally on your machine. Open your web browser and navigate to the local URL provided (usually `http://localhost:8501`).
+Instead of prefixing every command with `poetry run`, you can activate the virtual environment. This method activates the environment within your current shell session.
 
+* First, get the command to activate the environment:
+    ```bash
+    poetry env activate
+    ```
+* This will print an activation command. Copy and paste it to run it. It will look something like this:
+    ```bash
+    source /path/to/your/virtualenv/bin/activate
+    ```
+* Once activated, you can run commands directly. To deactivate and return to your normal shell, run:
+    ```bash
+    deactivate
+    ```
 
-## 使い方（日本語版は簡略版です）
-1. **ZIPファイルのダウンロード**
-    - ファイルを展開した後、**ターミナルを使用してフォルダに移動します**：
-      ```bash
-      cd [Your Repository Directory]
-      ```
+---
 
-2. **（Optional）Pythonで仮想環境を構築**
-    - 省略。Pythonを普段から使用している方は仮想環境の構築を推奨します。
+## 動作環境
 
-3. **依存関係のインストール**
-    - 必要なライブラリをインストールするために、以下のコマンドを実行します：
-      ```bash
-      pip install -r requirements.txt
-      ```
+* **Python 3.11**
+* **Poetry 2.0 以上**
 
-4. **アプリケーションの実行**
-    - アプリケーションを起動するには、次のコマンドを実行します：
-      ```bash
-      streamlit run PRM_App_Main.py
-      ```
+## 使い方 (Poetry版)
 
+上記の動作環境が準備されていることを前提としています。
+
+1.  **リポジトリのクローン**
+    * `git`コマンドでリポジトリをローカルにコピーします。
+        ```bash
+        git clone https://github.com/MSrakugo/PRM_Streamlit
+        ```
+    * ターミナルで、作成されたフォルダに移動します。
+        ```bash
+        cd PRM_Streamlit
+        ```
+
+2.  **依存関係のインストール**
+    * Poetryが`pyproject.toml`ファイルを元に、Python 3.11を使用したプロジェクト専用の仮想環境を自動で作成し、必要なライブラリをすべてインストールします。
+        ```bash
+        poetry install --no-root
+        ```
+
+3.  **アプリケーションの実行**
+    * Poetryが管理する仮想環境内でアプリケーションを起動するには、`poetry run`コマンドを使います。
+        ```bash
+        poetry run streamlit run PRM_App_Main.py
+        ```
+    * アプリケーションが起動し、WebブラウザでローカルURL（通常は `http://localhost:8501`）にアクセスできるようになります。
+
+### （任意）仮想環境内で直接作業する
+
+毎回 `poetry run` を先頭につける代わりに、仮想環境を有効化（activate）して作業することができます。現在使っているシェルのセッション内で、環境を有効化する方法です。
+
+* まず、有効化のためのコマンドを表示させます。
+    ```bash
+    poetry env activate
+    ```
+* 実行すると、有効化用のコマンドが出力されます。それをコピー＆ペーストして実行してください。以下のような形式です。
+    ```bash
+    source /path/to/your/virtualenv/bin/activate
+    ```
+* 有効化されたら、直接コマンドを実行できます。環境を無効化して元の状態に戻すには、以下のコマンドを実行します。
+    ```bash
+    deactivate
+    ```
+
+---
 もし上記の内容で分からない点があれば、お気軽にX(Twitter) @mtsn_stsh またはメールでお問い合わせください。
 
 ## Author
