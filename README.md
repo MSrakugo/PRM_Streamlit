@@ -18,7 +18,10 @@ This application not only allows users to **easily handle PRMs** through a user-
 
 ## UPDATE History
 
-Current status: Almost update have already finished (2024/09/18).
+Current status: Almost update have already finished (2025/07/03).
+
+2025/07/03 ver2.0 **Major Update**: 
+major update including an environment update (constructed with Poetry) and [open notebooks for XAI](/0_NoteBook/)
 
 2024/12/11 Correction to Bag: R^2 factor miscalculation (Matsuno+ 2022 values is correct), PM normalized Ratio data (e.g., "Zr_") incorrection.
 
