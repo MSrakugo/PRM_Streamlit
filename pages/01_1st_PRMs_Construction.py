@@ -58,12 +58,14 @@ else: # Default -> Metabsalt (MORB, VAB, OIB)
 index_col = Protolith_DATA_ex.slider('Input index_columns number', 0, 10, 0)
 header = Protolith_DATA_ex.slider('Input header number', 0, 10, 7)
 
+st.success(
 '''
 Same protocol can do with "0_BASE_Model_Construction.py"
+
 *******For dataset caution*******
 1. (Optional) Add "ANALYZED MATERIAL" and write WHOLE ROCK
 2. check index col and sample name (if duplicated, the sample will be delete automatically)
-'''
+''')
 ################################################################# Preprocessing
 
 ###################################################### Model setting
@@ -117,11 +119,14 @@ if Start_Preprocessing:
     Whole_rock_RAW, Whole_rock_cannot_Normalize, Whole_rock_after_Normalize_PM, Whole_rock_after_Normalize_C1 = preprocessing_PRM.Preprocessing_all(raw_data)
     #pathの名前をつける
     path_name = "0_PRM_Model_Folder/" + Model_algorithm + "/" + today_date + '_ALL/'
+    # make folder
+    make_dirs(path_name)
+    
     #save data take some secounds # Protolith dataのsave
     #_ = preprocessing_PRM.save_preprocessed_data(path_name, data_name, Whole_rock_RAW, Whole_rock_cannot_Normalize, Whole_rock_after_Normalize_PM, Whole_rock_after_Normalize_C1)
-    print("FIN: Preprocessing")
 
-
+    st.success("Finish Preprocessing")
+    st.info(
     """
     Caution when determing the input/output elements
     主要元素の設定を"Ti"などとした場合にエラーが出る　
@@ -131,7 +136,7 @@ if Start_Preprocessing:
     If you set the main element to “Ti” or something similar, you will get an error　
     -> When applying, there is a problem with the Input settings: specifically, because the element is set before PM normalization, an error occurs with Ti
     -> Set the element like “TiO2”.
-    """
+    """)
     ##################### Model Element setting
     #### initial setting-> element
     elem_all = ['Rb', 'Ba', 'Th', 'U', 'Nb', 'K', 'La', 'Ce', 'Pb', 'Sr', 'P', 'Nd', 'Zr', 'Ti', 'Y', 'Yb', 'Lu', 'SiO2', 'Al2O3', 'MgO', 'Na2O', 'P2O5', 'CaO', 'MnO', 'FeO', 'K2O']
@@ -149,7 +154,7 @@ if Start_Preprocessing:
     ##################### Model Element setting
 
     ############################################################################ For Ratio model ver 240918
-    """
+    st.info("""
     Caution for Ratio ver240707
     例えば、Ti, Nb, Zr, Y, Thの比 → Zr濃度 を求めることは想定していない（基本的に重複削除の方針）。
     そのため、Ratioデータについては"_ (アンダーバー)"を末尾につけることで、他元素かつPM normalizationに含まれない元素として例外処理する。
@@ -158,7 +163,7 @@ if Start_Preprocessing:
     For example, the ratio of Ti, Nb, Zr, Y, and Th → Zr concentration is not assumed to be obtained (basically, the policy is to delete duplicates).
     For this reason, the “_ (underscore)” at the end of the Ratio data is used to treat it as an exception as an element other than the other elements and an element not included in PM normalization.
     For example, the ratio of Ti, Nb, Zr, Y, and Th is written as Zr_.
-    """
+    """)
     if PRM_construction_Setting == 'Ratio':
         # 重複元素を_をつけて別元素として記録
         duplicates, duplicates_dict, mobile_elem_all = construction_PRM.check_and_modify_duplicates(mobile_elem_all, immobile_elem_all)
@@ -200,6 +205,10 @@ if Start_Preprocessing:
 
     ###################################################### Model Element setting
     if st.button('Model Training Active'):
+ 
+        #save data take some secounds # Protolith dataのsave
+        _ = preprocessing_PRM.save_preprocessed_data(path_name, data_name, Whole_rock_RAW, Whole_rock_cannot_Normalize, Whole_rock_after_Normalize_PM, Whole_rock_after_Normalize_C1)
+ 
         ###################################################### Model Active
         ############### メモリ節約
         try:
@@ -225,11 +234,8 @@ if Start_Preprocessing:
 
         error_list=pd.DataFrame([error_list_immobile, error_list_mobile])
         error_list.to_excel(path_name+"/0_error_list.xlsx")
-            ################################################################# Main
         ###################################################### Model Active
         
-        #save data take some secounds # Protolith dataのsave
-        _ = preprocessing_PRM.save_preprocessed_data(path_name, data_name, Whole_rock_RAW, Whole_rock_cannot_Normalize, Whole_rock_after_Normalize_PM, Whole_rock_after_Normalize_C1)
 
 else:
     pass

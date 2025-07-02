@@ -1,12 +1,43 @@
 .DS_Store
 venv/
 __pycache__
-0_NoteBook/
-0_PRM_Model_Folder/NGBoost/
+
+# Notebookを公開
+0_NoteBook/OLD
+0_NoteBook_Close/
+
+# Model関係
+0_PRM_Model_Folder/NGBoost
 0_PRM_Model_Folder/LightGBM/
+
+
 0_PRM_Model_Folder/論文用比較/
 0_PRM_Model_Folder/.DS_Store
+
+# Close project
 pages/OLD/
-0_Model_Construction_Protolith_Composition_Data/UNO_Project/
+0_Model_Construction_Protolith_Composition_Data/UNO_Project
+0_Model_Construction_Protolith_Composition_Data/PRM_For_Metabasalt/Data Visualization
 Kelley_Data/NGBoost/
 picture/
+
+# Python #
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.py[cod] # .pyc, .pyo, .pyd をまとめて指定
+*$py.class
+
+# Poetry / 仮想環境 #
+.venv/          # Poetryがプロジェクト内に作る仮想環境 (poetry config virtualenvs.in-project true の場合)
+dist/           # poetry build で作成される配布物
+build/
+*.egg-info/
+
+# macOS #
+.DS_Store
+
+*.whl
+._*
+.ipynb*
