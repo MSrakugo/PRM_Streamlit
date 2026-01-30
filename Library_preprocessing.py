@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Begin: Tue Mar  1 23:06:08 2022
-Final update: 2023/11/25
+Final update: 2026/01/30
 
 Author: 松野哲士 (Satoshi Matsuno), Tohoku university, Japan
 Contact: satoshi.matsuno.p2@dc.tohoku.ac.jp
@@ -53,18 +53,39 @@ def Preprocessing_all(raw_data):
     ###### major data
     major_ppm = pd.DataFrame()
     for elem, word in zip(elem_list, word_list):
-        try:
-            # wt%->ppmの計算
-            major_ppm[elem] = raw_data[word]*((10)**4)/elem_weight[elem]["%"]
-        except:
-            pass
+        if elem != "Fe": # Fe以外の処理
+            try:
+                # wt%->ppmの計算
+                major_ppm[elem] = raw_data[word]*((10)**4)/elem_weight[elem]["%"]
+            except:
+                print(f"Not possible to convert: {elem} {word}")
+        else: 
+            # Fe2O3の場合、上記と同様に処理できる
+            # FeOの場合、上記では処理できないので、特別な処理をする。
+            try:
+                if raw_data[word].exist:    # Fe2O3の場合
+                    major_ppm[elem] = raw_data[word]*((10)**4)/elem_weight[elem]["%"]
+                else:                       # FeOの場合
+                    major_ppm[elem] = raw_data[word]*((10)**4)/1.28648939028
+            except:
+                print(f"Not possible to convert: {elem} {word}")
+    # debag
+    print(f"Major Head: {major_ppm.head(5)}")
+    print(f"major_ppm.columns: {major_ppm.columns}")
+
     #raw_data assign; raw dataに代入
     raw_data[major_ppm.columns] = major_ppm
+    print(f"raw_data[major_ppm.columns]: {raw_data[major_ppm.columns].head()}")
+    print(f"raw_data[major_ppm.columns]: {raw_data[major_ppm.columns].columns}")
+
     #filled data assign; 既に入っているデータを再代入
     for elem in elem_list:
         raw_data_save_now = raw_data_save[elem].dropna()
-        raw_data[elem].loc[raw_data_save_now.index] = raw_data_save_now
+        # データが存在する場合のみ処理を実行
+        if not raw_data_save_now.empty:
+            raw_data.loc[raw_data_save_now.index, elem] = raw_data_save_now
     ########################################## major data compile wt%->ppmの計算
+    print(f"dtype check: {raw_data.dtypes}") # -> if this definition works, we can see Si, Ti, or other major element in float
 
     ########################################## CIA calculation
     raw_data["CaO*"] = raw_data["CaO"] - raw_data["P2O5"]/141.944/2*3/5

@@ -21,6 +21,9 @@ This application not only allows users to **easily handle PRMs** through a user-
 
 Current status: Almost update have already finished (2025/07/03).
 
+2026/01/30 ver2.1 **Minor Update**: Debag error in major element setting.
+
+
 2025/07/03 ver2.0 **Major Update**: 
 major update including an environment update (constructed with Poetry) and [open notebooks for XAI](/0_NoteBook/)
 

@@ -77,7 +77,7 @@ Model_ex.caption(today_date)
 PRM_construction_Setting = Model_ex.selectbox("Construction Setting", ['Normal', 'Ratio', 'Optional'])
 Model_algorithm = Model_ex.selectbox("Model algorithm", ['LightGBM', 'NGBoost'])
 Model_Training_Process = Model_ex.selectbox("Model Training Setting", ['Default', 'Optional'])
-Minimum_combination_number = Model_ex.slider('Input header number', 1, 10, 4)
+Minimum_combination_number = Model_ex.slider('Minimum combination number', 1, 10, 4)
 if PRM_construction_Setting == "Optional": # ver 240918 Ratioデータに対応するため
     # もし Ratio で推定を行う場合には、Input Outputに重複が存在しても良い形に変更する→Ratioに変更
     PRM_construction_Setting_ratio_check = st.sidebar.checkbox("Ratio")
@@ -128,22 +128,30 @@ if Start_Preprocessing:
     st.success("Finish Preprocessing")
     st.info(
     """
-    Caution when determing the input/output elements
-    主要元素の設定を"Ti"などとした場合にエラーが出る　
-    -> Applyするときに、Inputの設定で問題が生じるため：具体的にはPMノーマライズ前に元素設定をするため、Tiではエラーが発生する
-    ->"TiO2"のように元素を設定するようにすること
+    ### Caution when determing the input/output elements
+    主要元素の設定を"Ti"などとした場合にエラーが出る場合がある
+    * Applyするときに、Inputの設定で問題が生じるため：具体的にはPMノーマライズ前に元素設定をするため、Tiではエラーが発生する
+    * TiO2"のように元素を設定するようにすること
 
-    If you set the main element to “Ti” or something similar, you will get an error　
-    -> When applying, there is a problem with the Input settings: specifically, because the element is set before PM normalization, an error occurs with Ti
-    -> Set the element like “TiO2”.
+    If you set the main element to “Ti” or something similar, you will get an error
+    * When applying, there is a problem with the Input settings: specifically, because the element is set before PM normalization, an error occurs with Ti
+    * Set the element like “TiO2”.
     """)
     ##################### Model Element setting
     #### initial setting-> element
-    elem_all = ['Rb', 'Ba', 'Th', 'U', 'Nb', 'K', 'La', 'Ce', 'Pb', 'Sr', 'P', 'Nd', 'Zr', 'Ti', 'Y', 'Yb', 'Lu', 'SiO2', 'Al2O3', 'MgO', 'Na2O', 'P2O5', 'CaO', 'MnO', 'FeO', 'K2O']
-    immobile_elem_all = ['Zr', 'Th', 'Ti', 'Nb']
+    try: # defaultのPRMデータセット（used in Matsuno+ 2022,2025）の場合は、下記で問題ない ver 260130
+        elem_all = ['Rb', 'Ba', 'Th', 'U', 'Nb', 'K', 'La', 'Ce', 'Pb', 'Sr', 'P', 'Nd', 'Zr', 'Ti', 'Y', 'Yb', 'Lu', 'SiO2', 'Al2O3', 'MgO', 'Na2O', 'P2O5', 'CaO', 'MnO', 'FeO', 'K2O']
+        immobile_elem_all = ['Zr', 'Th', 'Ti', 'Nb']
+        
+        elem_all = st.multiselect("Choose All elem", Whole_rock_RAW.columns, elem_all)
+        immobile_elem_all = st.multiselect("Choose Immobile elem", Whole_rock_RAW.columns, immobile_elem_all)
+    except: # 上記 elem_allの中で、存在しない元素が含まれている場合
+        elem_all = Whole_rock_RAW.columns[0]
+        immobile_elem_all = Whole_rock_RAW.columns[1]
 
-    elem_all = st.multiselect("Choose All elem", Whole_rock_RAW.columns, elem_all)
-    immobile_elem_all = st.multiselect("Choose Immobile elem", Whole_rock_RAW.columns, immobile_elem_all)
+        elem_all = st.multiselect("Choose All elem", Whole_rock_RAW.columns, elem_all)
+        immobile_elem_all = st.multiselect("Choose Immobile elem", Whole_rock_RAW.columns, immobile_elem_all)        
+
 
     # ver 240918 Ratioの時は選択されたElement全てをMobile elementと定義（input自身を推定するモデル）
     if PRM_construction_Setting == 'Ratio':
@@ -155,7 +163,7 @@ if Start_Preprocessing:
 
     ############################################################################ For Ratio model ver 240918
     st.info("""
-    Caution for Ratio ver240707
+    ### Caution for Ratio ver240707
     例えば、Ti, Nb, Zr, Y, Thの比 → Zr濃度 を求めることは想定していない（基本的に重複削除の方針）。
     そのため、Ratioデータについては"_ (アンダーバー)"を末尾につけることで、他元素かつPM normalizationに含まれない元素として例外処理する。
     例えば、Ti, Nb, Zr, Y, Thの比 → Zr_ という形として記述する
@@ -182,12 +190,15 @@ if Start_Preprocessing:
     columns = Whole_rock_after_Normalize_PM.columns
     # elem_all に含まれている要素で、columns に含まれていない要素を探す
     missing_elements = [elem for elem in elem_all if elem not in columns]
+    print(f"Missing element: {missing_elements}")
     Whole_rock_after_Normalize_PM[missing_elements] = Whole_rock_RAW[missing_elements].copy() # Majoprを入れる
+    print(f"Element: {Whole_rock_after_Normalize_PM.columns}")
     #### list elem_allに入っていない要素をWhole_rock_after_Normalize_PM.columnsから見つけ出す
 
     #### Compile use data
     Protolith_data = Whole_rock_after_Normalize_PM[elem_all].copy() #データをまとめる
     Protolith_data.to_excel(path_name + "USE_DATA.xlsx") # データの出力
+    print(Protolith_data[immobile_elem_all])
     print(Protolith_data[immobile_elem_all].dropna().shape)
     Protolith_location_data=Whole_rock_cannot_Normalize[["DataBase", "SAMPLE_INFO"]]
     #### Compile use data
