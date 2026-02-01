@@ -780,6 +780,12 @@ def print_score(train_mean_score, test_mean_score, cv_mean_score):
     print("テスト・平均スコア　：　" + str(test_mean_score))
     print("CV・平均スコア　：　" + str(cv_mean_score))
 
+def print_score_std(train_mean_score, test_mean_score, cv_mean_score):
+    #print_score
+    print("トレーニング・平均スコア　std (NGBoost)：　" + str(train_mean_score))
+    print("テスト・平均スコア　std (NGBoost)：　" + str(test_mean_score))
+    print("CV・平均スコア　std (NGBoost)：　" + str(cv_mean_score))
+
 ################################################################################################ Parameter tuning
 
 ################################################################################################ Model construction Main + Pickle
@@ -790,7 +796,7 @@ def predict_model(elem, X_use, y, path_all_share, path_figure_all, feature_setti
     Score_all = pd.Series([], dtype=pd.StringDtype())
     Score_all.name = elem
 
-    print(X_use)
+    print(f"X_use: {X_use.columns}")
 
     ############################################元素の決定 Data read
     #データの代入
@@ -836,7 +842,7 @@ def predict_model(elem, X_use, y, path_all_share, path_figure_all, feature_setti
     Score_all["Default_CV_mean"] = scores[2]
     Score_all["Default_CV_Dist_mean"] = scores_dist[2]
     print_score(scores[0], scores[1], scores[2])
-    print_score(scores_dist[0], scores_dist[1], scores_dist[2])
+    print_score_std(scores_dist[0], scores_dist[1], scores_dist[2])
 
     ##################################### Print score
     ##################################### Initial model construct: CrossVaridationによるアンサンブルモデル作成，Predict，Score
@@ -874,7 +880,7 @@ def predict_model(elem, X_use, y, path_all_share, path_figure_all, feature_setti
 
     ##################################### Print score
     #print_score
-    print("########### Optune_tuned")
+    print("########### Optuna_tuned")
     #トレーニングの平均スコアを格納
     Score_all["Optuna_Train_mean"] = scores[0]
     Score_all["Optuna_Train_Dist_mean"] = scores_dist[0]
@@ -883,7 +889,7 @@ def predict_model(elem, X_use, y, path_all_share, path_figure_all, feature_setti
     Score_all["Optuna_CV_mean"] = scores[2]
     Score_all["Optuna_CV_Dist_mean"] = scores_dist[2]
     print_score(scores[0], scores[1], scores[2])
-    print_score(scores_dist[0], scores_dist[1], scores_dist[2])
+    print_score_std(scores_dist[0], scores_dist[1], scores_dist[2])
     ##################################### Print score
     #########score 保存
     Score_all.to_excel(path_all_share + "/Score_all.xlsx")
@@ -916,49 +922,52 @@ def predict_model(elem, X_use, y, path_all_share, path_figure_all, feature_setti
 
     for best_model in model_all.model:
         if Model_algorithm == 'LightGBM':
-            #################################### learning curve
-            lgb.plot_metric(evals_result_append_best[num_importance])
-            #path
-            path_now_fig_name = "/learning_curve_" + str(num_importance) + ".pdf"
-            #save
-            plt.savefig(path_figure_all + path_now_fig_name, bbox_inches='tight')
-            plt.close()
-            plt.show()
+            try:
+                #################################### learning curve
+                lgb.plot_metric(evals_result_append_best[num_importance])
+                #path
+                path_now_fig_name = "/learning_curve_" + str(num_importance) + ".pdf"
+                #save
+                plt.savefig(path_figure_all + path_now_fig_name, bbox_inches='tight')
+                plt.close()
+                plt.show()
 
-            #DataFrameに入れる
-            evals_result_compile['learning_curve_'+str(num_importance)+'_train'] = evals_result_append_best[num_importance]['train']['rmse']
-            evals_result_compile['learning_curve_'+str(num_importance)+'_eval'] = evals_result_append_best[num_importance]['eval']['rmse']
-            #################################### learning curve
+                #DataFrameに入れる
+                evals_result_compile['learning_curve_'+str(num_importance)+'_train'] = evals_result_append_best[num_importance]['train']['rmse']
+                evals_result_compile['learning_curve_'+str(num_importance)+'_eval'] = evals_result_append_best[num_importance]['eval']['rmse']
+                #################################### learning curve
 
-            #################################### gain
-            importances = pd.Series(best_model.feature_importance(importance_type="gain"), index = feature_name)
-            #DataFrameに入れる
-            importance_compile_gain['model_'+str(num_importance)] = importances
-            #importance取得
-            lgb.plot_importance(best_model, importance_type="gain", figsize=(12, 12))
-            #path
-            path_now_fig_name = "/importance_model_gain_" + str(num_importance) + ".pdf"
-            #save
-            plt.savefig(path_figure_all + path_now_fig_name, bbox_inches='tight')
-            plt.close()
-            plt.show()
-            #################################### gain
+                #################################### gain
+                importances = pd.Series(best_model.feature_importance(importance_type="gain"), index = feature_name)
+                #DataFrameに入れる
+                importance_compile_gain['model_'+str(num_importance)] = importances
+                #importance取得
+                lgb.plot_importance(best_model, importance_type="gain", figsize=(12, 12))
+                #path
+                path_now_fig_name = "/importance_model_gain_" + str(num_importance) + ".pdf"
+                #save
+                plt.savefig(path_figure_all + path_now_fig_name, bbox_inches='tight')
+                plt.close()
+                plt.show()
+                #################################### gain
 
-            #################################### split
-            importances = pd.Series(best_model.feature_importance(importance_type="split"), index = feature_name)
-            #DataFrameに入れる
-            importance_compile_split['model_'+str(num_importance)] = importances
-            #importance取得
-            lgb.plot_importance(best_model, importance_type="split", figsize=(12, 12))
-            #path
-            path_now_fig_name = "/importance_model_split_" + str(num_importance) + ".pdf"
-            #save
-            plt.savefig(path_figure_all + path_now_fig_name, bbox_inches='tight')
-            plt.close()
-            plt.show()
-            #################################### split
-            #名前change
-            num_importance = num_importance + 1
+                #################################### split
+                importances = pd.Series(best_model.feature_importance(importance_type="split"), index = feature_name)
+                #DataFrameに入れる
+                importance_compile_split['model_'+str(num_importance)] = importances
+                #importance取得
+                lgb.plot_importance(best_model, importance_type="split", figsize=(12, 12))
+                #path
+                path_now_fig_name = "/importance_model_split_" + str(num_importance) + ".pdf"
+                #save
+                plt.savefig(path_figure_all + path_now_fig_name, bbox_inches='tight')
+                plt.close()
+                plt.show()
+                #################################### split
+                #名前change
+                num_importance = num_importance + 1
+            except:
+                pass
         elif Model_algorithm == 'NGBoost':
             pass
     # save importance
@@ -976,40 +985,62 @@ def predict_model(elem, X_use, y, path_all_share, path_figure_all, feature_setti
         pred_test_dist.index = test_y.index # indexを指定してやる
     #######################テストデータの誤差計算
     #誤差の計算
-    score_error_freq = (pd.Series(pred_test).apply(lambda x: 10**x).values / pd.Series(test_y).apply(lambda x: 10**x).values)*100
+    try:
+        score_error_freq = (pd.Series(pred_test).apply(lambda x: 10**x).values / pd.Series(test_y).apply(lambda x: 10**x).values)*100
+        test_error_all[elem] = pd.Series(score_error_freq, index = test_y.index)
+        test_error_all.to_excel(path_all_share + "/test_error_all.xlsx")
+    except OverflowError:
+        try: 
+            st.error(f"⚠️ {elem}で計算オーバーフローが発生しました。")
+        except:
+            print(f"⚠️ {elem}で計算オーバーフローが発生しました。")
+    except Exception as e:
+        try: 
+            st.error(f"⚠️ {elem}でエラーが発生しました。")
+        except:
+            print(f"⚠️ {elem}でエラーが発生しました。")
     #誤差を格納していく
-    test_error_all[elem] = pd.Series(score_error_freq, index = test_y.index)
-    test_error_all.to_excel(path_all_share + "/test_error_all.xlsx")
+
 
     #######################testデータ
     #この際のtest_yを代入していく
     test_data_all = pd.concat([test_y.apply(lambda x: 10**x), test_x], axis = 1)
     test_data_all["RAW"] = test_y.apply(lambda x: 10**x)
-    test_data_all["predict"] = pd.Series(pred_test, index = test_y.index).apply(lambda x: 10**x)
+    try:
+        test_data_all["predict"] = pd.Series(pred_test, index = test_y.index).apply(lambda x: 10**x)
+    except OverflowError:
+        print(f"⚠️ {elem}で計算オーバーフローが発生しました。(L1012)")
+        test_data_all["predict"] = None
     if Model_algorithm == 'NGBoost':
         test_data_all["predict_Dist"] = pred_test_dist
     test_data_all.to_excel(path_all_share + "/test_data_all.xlsx")
 
-    test_data_all.plot.scatter(x='RAW', y='predict', figsize=(3, 3), alpha=0.05)
-    plt.xscale('log')
-    plt.yscale('log')
-    plt.savefig(path_all_share + "/test_data_scatter.pdf", bbox_inches='tight')
-    plt.close()
-    plt.show()
-
-    if Model_algorithm == 'NGBoost': ### error bar付きの散布図
-        # figure
-        test_data_all = pd.concat([test_y, test_x], axis = 1)
-        test_data_all["RAW"] = test_y
-        test_data_all["predict"] = pd.Series(pred_test, index = test_y.index)
-        test_data_all["predict_Dist"] = pred_test_dist
-        test_data_all.to_excel(path_all_share + "/test_data_all_dist.xlsx")
-
-        plt.figure(figsize=(3, 3))
-        plt.errorbar(test_data_all["RAW"], test_data_all["predict"], yerr = test_data_all["predict_Dist"], capsize=5, fmt='o', markersize=5, ecolor='black', markeredgecolor = "black", color='w', alpha=0.05)
-        plt.savefig(path_all_share + "/test_data_scatter_dist.pdf", bbox_inches='tight')
+    try:
+        test_data_all.plot.scatter(x='RAW', y='predict', figsize=(3, 3), alpha=0.05)
+        plt.xscale('log')
+        plt.yscale('log')
+        plt.savefig(path_all_share + "/test_data_scatter.pdf", bbox_inches='tight')
         plt.close()
         plt.show()
+    except:
+        print("test_data_allに問題があります")
+
+    if Model_algorithm == 'NGBoost': ### error bar付きの散布図
+        try:
+            # figure
+            test_data_all = pd.concat([test_y, test_x], axis = 1)
+            test_data_all["RAW"] = test_y
+            test_data_all["predict"] = pd.Series(pred_test, index = test_y.index)
+            test_data_all["predict_Dist"] = pred_test_dist
+            test_data_all.to_excel(path_all_share + "/test_data_all_dist.xlsx")
+
+            plt.figure(figsize=(3, 3))
+            plt.errorbar(test_data_all["RAW"], test_data_all["predict"], yerr = test_data_all["predict_Dist"], capsize=5, fmt='o', markersize=5, ecolor='black', markeredgecolor = "black", color='w', alpha=0.05)
+            plt.savefig(path_all_share + "/test_data_scatter_dist.pdf", bbox_inches='tight')
+            plt.close()
+            plt.show()
+        except:
+            print("test_data_allに問題があります")
 
     return model_all, Score_all, test_error_all, test_data_all
 

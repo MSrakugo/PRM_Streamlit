@@ -19,9 +19,9 @@ This application not only allows users to **easily handle PRMs** through a user-
 
 ## UPDATE History
 
-Current status: Almost update have already finished (2025/07/03).
+Current status: Almost update have already finished (2026/02/01).
 
-2026/01/30 ver2.1 **Minor Update**: Debag error in major element setting.
+2026/02/01 ver2.1 **Minor Update**: Debag error in major element setting.
 
 
 2025/07/03 ver2.0 **Major Update**: 
@@ -46,8 +46,12 @@ Key words:
 
 ## Application Examples
 
-* Matsuno, Satoshi, Masaoki Uno, and Atsushi Okamoto. 2025. “The Control of Oceanic Crustal Age and Redox Conditions on Seafloor Alteration: Examples from a Quantitative Comparison of Elemental Mass Transport in the South and Northwest Pacific.” Chemical Geology 678 (122651): 122651.(https://doi.org/10.1016/j.chemgeo.2025.122651)
-* [Source code](https://github.com/MSrakugo/Matsuno_2025a_Seafloor_Alteration)
+* [Matsuno, Satoshi, Masaoki Uno, and Atsushi Okamoto. 2025. “The Control of Oceanic Crustal Age and Redox Conditions on Seafloor Alteration: Examples from a Quantitative Comparison of Elemental Mass Transport in the South and Northwest Pacific.” Chemical Geology 678 (122651): 122651.](https://doi.org/10.1016/j.chemgeo.2025.122651)
+    * [Source code](https://github.com/MSrakugo/Matsuno_2025a_Seafloor_Alteration)
+
+* [Matsuno, Satoshi, Masaoki Uno, and Atsushi Okamoto. 2025. “Low‐dimensional Controls on Oceanic Basalt Geochemistry Revealed by Regression‐based Machine Learning Models.” Journal of Geophysical Research: Machine Learning and Computation 2 (4).](https://doi.org/10.1029/2025jh000700.)
+    * Main process performed in this paper use [this notebook](https://github.com/MSrakugo/PRM_Streamlit/blob/main/0_NoteBook/5_SHAP_Explaination_250604.ipynb). You can run this notebook after model construction
+
 
 ## Features
 * **Protolith Reconstruction Models (PRMs)**: Accurately estimate the protolith composition from a limited number of input elements of altered or metamorphosed samples. The default model focuses on basalt trace-element compositions.
@@ -61,7 +65,7 @@ Key words:
 * **Poetry 2.0 or higher**:
   [Official documentation](https://python-poetry.org/docs/)
 
-## How to use (with Poetry)
+## Getting Started (with Poetry)
 
 These instructions assume you have met the requirements listed above.
 
@@ -104,6 +108,13 @@ Instead of prefixing every command with `poetry run`, you can activate the virtu
     ```bash
     deactivate
     ```
+4.  **Construct and Use Protolith Reconstruction Models**
+    * You can construct PRMs and predict protolith composition from alterd/metamorphosed rocks by yourself.
+    * This GUI contain below contents:
+        1. To construct PRMs by your suitable data
+        2. Evaluation and Explain selected PRMs with test dataset
+        3. Read your compositional data and apply PRMs
+        4. Preprocessing & Visualization with primitive mantle normalization
 
 ---
 

@@ -77,7 +77,13 @@ Model_ex.caption(today_date)
 PRM_construction_Setting = Model_ex.selectbox("Construction Setting", ['Normal', 'Ratio', 'Optional'])
 Model_algorithm = Model_ex.selectbox("Model algorithm", ['LightGBM', 'NGBoost'])
 Model_Training_Process = Model_ex.selectbox("Model Training Setting", ['Default', 'Optional'])
-Minimum_combination_number = Model_ex.slider('Minimum combination number', 1, 10, 4)
+
+# Minimum_combination_numberは、ratioの場合２以上である必要がある。
+if PRM_construction_Setting == "Ratio":
+    Minimum_combination_number = Model_ex.slider('Minimum combination number', 2, 10, 4)
+else:
+    Minimum_combination_number = Model_ex.slider('Minimum combination number', 1, 10, 4)
+
 if PRM_construction_Setting == "Optional": # ver 240918 Ratioデータに対応するため
     # もし Ratio で推定を行う場合には、Input Outputに重複が存在しても良い形に変更する→Ratioに変更
     PRM_construction_Setting_ratio_check = st.sidebar.checkbox("Ratio")
@@ -139,18 +145,18 @@ if Start_Preprocessing:
     """)
     ##################### Model Element setting
     #### initial setting-> element
-    try: # defaultのPRMデータセット（used in Matsuno+ 2022,2025）の場合は、下記で問題ない ver 260130
+    if own_data: # 上記 elem_allの中で、存在しない元素が含まれている場合
+        elem_all = Whole_rock_RAW.columns
+
+        elem_all = st.multiselect("Choose All elem", elem_all, elem_all)
+        immobile_elem_all = st.multiselect("Choose Immobile elem", options=elem_all, default=[elem_all[0]])
+
+    else: # defaultのPRMデータセット（used in Matsuno+ 2022,2025）の場合は、下記で問題ない ver 260130
         elem_all = ['Rb', 'Ba', 'Th', 'U', 'Nb', 'K', 'La', 'Ce', 'Pb', 'Sr', 'P', 'Nd', 'Zr', 'Ti', 'Y', 'Yb', 'Lu', 'SiO2', 'Al2O3', 'MgO', 'Na2O', 'P2O5', 'CaO', 'MnO', 'FeO', 'K2O']
         immobile_elem_all = ['Zr', 'Th', 'Ti', 'Nb']
         
-        elem_all = st.multiselect("Choose All elem", Whole_rock_RAW.columns, elem_all)
-        immobile_elem_all = st.multiselect("Choose Immobile elem", Whole_rock_RAW.columns, immobile_elem_all)
-    except: # 上記 elem_allの中で、存在しない元素が含まれている場合
-        elem_all = Whole_rock_RAW.columns[0]
-        immobile_elem_all = Whole_rock_RAW.columns[1]
-
-        elem_all = st.multiselect("Choose All elem", Whole_rock_RAW.columns, elem_all)
-        immobile_elem_all = st.multiselect("Choose Immobile elem", Whole_rock_RAW.columns, immobile_elem_all)        
+        elem_all = st.multiselect("Choose All elem", elem_all, elem_all)
+        immobile_elem_all = st.multiselect("Choose Immobile elem", elem_all, immobile_elem_all)  
 
 
     # ver 240918 Ratioの時は選択されたElement全てをMobile elementと定義（input自身を推定するモデル）
@@ -164,13 +170,13 @@ if Start_Preprocessing:
     ############################################################################ For Ratio model ver 240918
     st.info("""
     ### Caution for Ratio ver240707
-    例えば、Ti, Nb, Zr, Y, Thの比 → Zr濃度 を求めることは想定していない（基本的に重複削除の方針）。
-    そのため、Ratioデータについては"_ (アンダーバー)"を末尾につけることで、他元素かつPM normalizationに含まれない元素として例外処理する。
-    例えば、Ti, Nb, Zr, Y, Thの比 → Zr_ という形として記述する
+    * 例えば、Ti, Nb, Zr, Y, Thの比 → Zr濃度 を求めることは想定していない（基本的に重複削除の方針）。
+    * そのため、Ratioデータについては"_ (アンダーバー)"を末尾につけることで、他元素かつPM normalizationに含まれない元素として例外処理する。
+    * 例えば、Ti, Nb, Zr, Y, Thの比 → Zr_ という形として記述する
 
-    For example, the ratio of Ti, Nb, Zr, Y, and Th → Zr concentration is not assumed to be obtained (basically, the policy is to delete duplicates).
-    For this reason, the “_ (underscore)” at the end of the Ratio data is used to treat it as an exception as an element other than the other elements and an element not included in PM normalization.
-    For example, the ratio of Ti, Nb, Zr, Y, and Th is written as Zr_.
+    * For example, the ratio of Ti, Nb, Zr, Y, and Th → Zr concentration is not assumed to be obtained (basically, the policy is to delete duplicates).
+    * For this reason, the “_ (underscore)” at the end of the Ratio data is used to treat it as an exception as an element other than the other elements and an element not included in PM normalization.
+    * For example, the ratio of Ti, Nb, Zr, Y, and Th is written as Zr_.
     """)
     if PRM_construction_Setting == 'Ratio':
         # 重複元素を_をつけて別元素として記録
@@ -198,8 +204,8 @@ if Start_Preprocessing:
     #### Compile use data
     Protolith_data = Whole_rock_after_Normalize_PM[elem_all].copy() #データをまとめる
     Protolith_data.to_excel(path_name + "USE_DATA.xlsx") # データの出力
-    print(Protolith_data[immobile_elem_all])
-    print(Protolith_data[immobile_elem_all].dropna().shape)
+    print(f"Protolith_data[immobile_elem_all]: {Protolith_data[immobile_elem_all]}")
+    print(f"Protolith_data[immobile_elem_all].dropna().shape: {Protolith_data[immobile_elem_all].dropna().shape}")
     Protolith_location_data=Whole_rock_cannot_Normalize[["DataBase", "SAMPLE_INFO"]]
     #### Compile use data
 
@@ -209,8 +215,8 @@ if Start_Preprocessing:
     mobile_all_list = element_compile['mobile']
     #### elem combination listの作成
 
-    print(element_compile.shape)
-    print(element_compile)
+    print(f"element_compile.shape: {element_compile.shape}")
+    print(f"element_compile: {element_compile}")
     ###################################################### Preprocessing
 
     ###################################################### Model Element setting
@@ -231,21 +237,27 @@ if Start_Preprocessing:
         error_list_immobile=[]
         error_list_mobile=[]
 
+        print(f"Model construction initialization--------------------------------------------------")
+ 
         for immobile_elem, mobile_elem_list in zip(immobile_all_list, mobile_all_list):
             immobile_elem = list(immobile_elem)
 
             for mobile_elem in mobile_elem_list:
                 mobile_elem = [mobile_elem]
-                #try:
-                construction_PRM.__main__(path_name, mobile_elem, immobile_elem, Protolith_data, Protolith_location_data, Protolith_location_data, feature_setting, Training_Setting)
-                #except:
-                error_list_immobile.append(str(immobile_elem))
-                error_list_mobile.append(str(mobile_elem))
+
+                print(f"Model construction--------------------------------------------------")
+                print(f"mobile_elem: {mobile_elem}")
+                print(f"immobile_elem: {immobile_elem}")
+
+                try:
+                    construction_PRM.__main__(path_name, mobile_elem, immobile_elem, Protolith_data, Protolith_location_data, Protolith_location_data, feature_setting, Training_Setting)
+                except:
+                    error_list_immobile.append(str(immobile_elem))
+                    error_list_mobile.append(str(mobile_elem))
 
         error_list=pd.DataFrame([error_list_immobile, error_list_mobile])
         error_list.to_excel(path_name+"/0_error_list.xlsx")
-        ###################################################### Model Active
-        
+        ###################################################### Model Active        
 
 else:
     pass

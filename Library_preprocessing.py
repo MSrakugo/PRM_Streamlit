@@ -87,6 +87,7 @@ def Preprocessing_all(raw_data):
     ########################################## major data compile wt%->ppmの計算
     print(f"dtype check: {raw_data.dtypes}") # -> if this definition works, we can see Si, Ti, or other major element in float
 
+    print(raw_data.columns)
     ########################################## CIA calculation
     raw_data["CaO*"] = raw_data["CaO"] - raw_data["P2O5"]/141.944/2*3/5
     raw_data["CIA*"] = 100*(raw_data["Al2O3"]/101.96)/((raw_data["Al2O3"]/101.96)+(raw_data["CaO"]/56.0774)+(raw_data["Na2O"]/61.9789)+(raw_data["K2O"]/94.2))

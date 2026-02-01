@@ -14,9 +14,12 @@ import streamlit as st
 
 def page_footer():
     st.write("---")
-    st.subheader("Cite articles")
+    st.subheader("Articles")
+    st.markdown("Please cite these papers:")
     st.markdown("1. Matsuno, S., Uno, M., Okamoto, A. Tsuchiya, N. Machine-learning techniques for quantifying the protolith composition and mass transfer history of metabasalt. Sci Rep 12, 1385 (2022). https://doi.org/10.1038/s41598-022-05109-x")
     st.markdown("2. Matsuno, S. Graphical Interface to Construct and Apply Machine-learning based Protolith Reconstruction Models (PRMs) (v1.1). Zenodo (2023). https://doi.org/10.5281/zenodo.10183974")
+    st.markdown("When you use/construct NGBoost-based PRM, please cite this article")
+    st.markdown("3. Matsuno, S., Uno, M., Okamoto, A. Low‐dimensional Controls on Oceanic Basalt Geochemistry Revealed by Regression‐based Machine Learning Models.” JGR: MLC 2 (4). https://doi.org/10.1029/2025jh000700.")
     st.write("---")
     st.caption("Press release in Japanese: https://www.tohoku.ac.jp/japanese/2022/02/press20220210-01-machine.html")
     st.caption("Auther: Satoshi Matsuno (Tohoku univ., Japan)")

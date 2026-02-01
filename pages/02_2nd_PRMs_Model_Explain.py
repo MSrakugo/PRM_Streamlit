@@ -93,7 +93,11 @@ good_range_elem=Model_Setting.multiselect("Choose the Good range elem", output_v
 # DEFINE good_range_elem
 
 #Location dataのロード
-Raw_Protolith_location = pd.read_excel("0_PRM_Model_Folder/"+ Algorithm_name +"/" + Model_name+"/0_Protolith/Location_Ref_Data.xlsx", index_col=0)
+try:
+    Raw_Protolith_location = pd.read_excel("0_PRM_Model_Folder/"+ Algorithm_name +"/" + Model_name+"/Protolith/Location_Ref_Data.xlsx", index_col=0)
+except: # 昔のセッティングで0_Protolithの場合があったので、例外処理を追加
+    Raw_Protolith_location = pd.read_excel("0_PRM_Model_Folder/"+ Algorithm_name +"/" + Model_name+"/0_Protolith/Location_Ref_Data.xlsx", index_col=0)
+
 TECTONIC_list = Raw_Protolith_location["SAMPLE_INFO"].unique()
 st.sidebar.caption("Color Order: ")
 st.sidebar.caption(TECTONIC_list)

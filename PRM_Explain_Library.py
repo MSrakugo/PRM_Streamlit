@@ -54,7 +54,10 @@ plt.rcParams['font.sans-serif'] = ['Arial']
 def Error_Distribution_Figure(path_model, path, mobile_elem_all, good_range_elem, TECTONIC_list):
     now_figure_path = path+'/Model_explain'
     make_dirs(now_figure_path)
-    Raw_Protolith_location = pd.read_excel(path_model+"/0_Protolith/Location_Ref_Data.xlsx", index_col=0)
+    try:
+        Raw_Protolith_location = pd.read_excel(path_model+"/Protolith/Location_Ref_Data.xlsx", index_col=0)
+    except: # 昔のセッティングで0_Protolithの場合があったので、例外処理を追加
+        Raw_Protolith_location = pd.read_excel(path_model+"/0_Protolith/Location_Ref_Data.xlsx", index_col=0)
     #normalizeのためのデータをread
     for_normalize_data = pd.read_excel("List/Primitive_Mantle _ C1 Chondrite.xlsx", index_col=0, header=0).loc['PM(SM89)']#[trace_all]
     normalized_element = for_normalize_data.dropna().index[1:]
@@ -163,7 +166,10 @@ def Error_Distribution_Figure(path_model, path, mobile_elem_all, good_range_elem
 def Usual_Scatter_Plot(path_model, path, mobile_elem_all, good_range_elem, TECTONIC_list):
     now_figure_path = path+'/Model_explain'
     make_dirs(now_figure_path)
-    Raw_Protolith_location = pd.read_excel(path_model+"/0_Protolith/Location_Ref_Data.xlsx", index_col=0)
+    try:
+        Raw_Protolith_location = pd.read_excel(path_model+"/0_Protolith/Location_Ref_Data.xlsx", index_col=0)
+    except:
+        Raw_Protolith_location = pd.read_excel(path_model+"/Protolith/Location_Ref_Data.xlsx", index_col=0)
     #normalizeのためのデータをread
     for_normalize_data = pd.read_excel("List/Primitive_Mantle _ C1 Chondrite.xlsx", index_col=0, header=0).loc['PM(SM89)']#[trace_all]
     normalized_element = for_normalize_data.dropna().index[1:]
@@ -266,7 +272,10 @@ def Usual_Scatter_Plot(path_model, path, mobile_elem_all, good_range_elem, TECTO
 def NGBoost_Scatter_Plot(path_model, path, mobile_elem_all, good_range_elem, TECTONIC_list):
     now_figure_path = path+'/Model_explain'
     make_dirs(now_figure_path)
-    Raw_Protolith_location = pd.read_excel(path_model+"/0_Protolith/Location_Ref_Data.xlsx", index_col=0)
+    try:
+        Raw_Protolith_location = pd.read_excel(path_model+"/0_Protolith/Location_Ref_Data.xlsx", index_col=0)
+    except:
+        Raw_Protolith_location = pd.read_excel(path_model+"/Protolith/Location_Ref_Data.xlsx", index_col=0)
     #normalizeのためのデータをread
     for_normalize_data = pd.read_excel("List/Primitive_Mantle _ C1 Chondrite.xlsx", index_col=0, header=0).loc['PM(SM89)']#[trace_all]
     normalized_element = for_normalize_data.dropna().index[1:]
@@ -374,7 +383,10 @@ def NGBoost_Scatter_Plot(path_model, path, mobile_elem_all, good_range_elem, TEC
 def Usual_Scatter_Plot_norm(path_model, path, mobile_elem_all, good_range_elem, TECTONIC_list):
     now_figure_path = path+'/Model_explain'
     make_dirs(now_figure_path)
-    Raw_Protolith_location = pd.read_excel(path_model+"/0_Protolith/Location_Ref_Data.xlsx", index_col=0)
+    try:
+        Raw_Protolith_location = pd.read_excel(path_model+"/Protolith/Location_Ref_Data.xlsx", index_col=0)
+    except:
+        Raw_Protolith_location = pd.read_excel(path_model+"/0_Protolith/Location_Ref_Data.xlsx", index_col=0)
     #normalizeのためのデータをread
     for_normalize_data = pd.read_excel("List/Primitive_Mantle _ C1 Chondrite.xlsx", index_col=0, header=0).loc['PM(SM89)']#[trace_all]
     normalized_element = for_normalize_data.dropna().index[1:]
