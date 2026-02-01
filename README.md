@@ -50,8 +50,7 @@ Key words:
     * [Source code](https://github.com/MSrakugo/Matsuno_2025a_Seafloor_Alteration)
 
 * [Matsuno, Satoshi, Masaoki Uno, and Atsushi Okamoto. 2025. “Low‐dimensional Controls on Oceanic Basalt Geochemistry Revealed by Regression‐based Machine Learning Models.” Journal of Geophysical Research: Machine Learning and Computation 2 (4).](https://doi.org/10.1029/2025jh000700.)
-    * Main process performed in this paper use [this notebook](https://github.com/MSrakugo/PRM_Streamlit/blob/main/0_NoteBook/5_SHAP_Explaination_250604.ipynb). You can run this notebook after model construction
-
+    * This study used [this notebook](https://github.com/MSrakugo/PRM_Streamlit/blob/main/0_NoteBook/5_SHAP_Explaination_250604.ipynb) for model interpretation. You can run this notebook after model construction.
 
 ## Features
 * **Protolith Reconstruction Models (PRMs)**: Accurately estimate the protolith composition from a limited number of input elements of altered or metamorphosed samples. The default model focuses on basalt trace-element compositions.
