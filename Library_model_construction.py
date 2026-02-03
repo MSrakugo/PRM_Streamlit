@@ -513,13 +513,13 @@ def model_construction(feature_setting, params, train_x_valid, train_y_valid, cv
         evals_result = {}
         ###　学習曲線を記録
 
-        # コールバックを定義します
+        # コールバックを定義
         callbacks_list = [
             lgb.callback.record_evaluation(evals_result),  # 評価結果を格納するため
         ]
 
         # verbose_eval の機能を実現 modified ver 250603 for LightGBM 4.0以上に対応
-        # verbose_eval=True の場合、各イテレーションで出力します:
+        # verbose_eval=True の場合、各イテレーションで出力:
         callbacks_list.append(lgb.callback.log_evaluation(period=50)) # 50回おきにイテレーションを出力
 
         ########### model construct & train　modified ver 250603 for LightGBM 4.0以上に対応
@@ -676,10 +676,32 @@ def predict_cv(params, feature_setting, Fold_num, train_x, train_y, test_x, test
         cv_predict_dist_append.append(predicted_dist_cv_y)
 
         #score myself
-        #実装したスコアを計算
-        train_score = np.average(np.sqrt((predicted_train_y - train_y_valid)**2))
-        test_score = np.average(np.sqrt((predicted_test_y - test_y_valid)**2))
-        cv_score = np.average(np.sqrt((predicted_cv_y - cv_y)**2))
+        ######################################################################
+        # スコアを計算
+        # 実装が間違っていた: 修正, 以前のものはMAEの式になっていた。
+        # 以下の実装
+        # train_score = np.average(np.sqrt((predicted_train_y - train_y_valid)**2))
+        # test_score = np.average(np.sqrt((predicted_test_y - test_y_valid)**2))
+        # cv_score = np.average(np.sqrt((predicted_cv_y - cv_y)**2))
+
+        ############################################################
+        # RMSE
+        ############################################################
+        p_tr = np.asarray(predicted_train_y, dtype=float)
+        y_tr = train_y_valid.to_numpy(dtype=float)
+        e_tr = p_tr - y_tr
+        train_score = np.sqrt(np.mean(e_tr ** 2))
+
+        p_te = np.asarray(predicted_test_y, dtype=float)
+        y_te = test_y_valid.to_numpy(dtype=float)
+        e_te = p_te - y_te
+        test_score = np.sqrt(np.mean(e_te ** 2))
+
+        p_cv = np.asarray(predicted_cv_y, dtype=float)
+        y_cv = cv_y.to_numpy(dtype=float)
+        e_cv = p_cv - y_cv
+        cv_score = np.sqrt(np.mean(e_cv ** 2))
+        ######################################################################
 
         #スコアを加えていく
         train_score_append.append(train_score)
@@ -722,6 +744,11 @@ def score_holder_define():
 
 ########### if文入れると遅くなるので、改良する必要あり→そこまで影響ないかも？
 def objective_define(feature_setting, Fold_num, train_x, train_y, test_x, test_y):
+    # CVの等分割を仮定した「1foldあたりの学習データ数（概算）」
+    # n_total = int(train_x.shape[0])
+    # K = int(Fold_num)
+    # n_train_fold = max(1, int(n_total * (K - 1) / K))  # = train_x.shape[0]/Fold_num*(Fold_num-1)
+
     def objective(trial):
         ### parameter selection for model
         Model_algorithm = feature_setting.ML_algorithm_name
@@ -734,9 +761,16 @@ def objective_define(feature_setting, Fold_num, train_x, train_y, test_x, test_y
                 'seed': 42,
 
                 # 学習用基本パラメータ
-                'num_leaves' : trial.suggest_int('num_leaves', 8, 128),
-                'max_depth' : trial.suggest_int('max_depth', 2, 10),
-                'min_data_in_leaf' : trial.suggest_int('min_data_in_leaf', 75, 500),
+
+                # Matsuno+ 2022で探索されているパラメータ探索範囲
+                # 'num_leaves' : trial.suggest_int('num_leaves', 8, 128),
+                # 'max_depth' : trial.suggest_int('max_depth', 2, 10),
+                # 'min_data_in_leaf' : trial.suggest_int('min_data_in_leaf', 75, 500),
+
+                # 20260204に調整したパラメータ探索範囲
+                'num_leaves' : trial.suggest_int('num_leaves', 32, 256),
+                'max_depth' : trial.suggest_int('max_depth', 7, 14),
+                'min_data_in_leaf' : trial.suggest_int('min_data_in_leaf', 20, 300),
 
                 #'max_bin' : trial.suggest_int('max_bin', 100, 300),
                 #'learning_rate' : trial.suggest_loguniform('learning_rate', 0.05, 0.5),
@@ -748,10 +782,17 @@ def objective_define(feature_setting, Fold_num, train_x, train_y, test_x, test_y
             }
         elif Model_algorithm == "NGBoost":
             params = {
-                "max_depth" : trial.suggest_int('max_depth', 2, 10),
-                "min_samples_leaf":trial.suggest_int('min_samples_leaf', 8, 128),
-                "min_samples_split": trial.suggest_int('min_samples_split', 75, 500),
-                "minibatch_frac": trial.suggest_float('minibatch_frac', 1E-16, 1.0)
+                # Matsuno+ 2025で探索されているパラメータ探索範囲
+                # "max_depth" : trial.suggest_int('max_depth', 2, 10),
+                # "min_samples_leaf":trial.suggest_int('min_samples_leaf', 8, 128),
+                # "min_samples_split": trial.suggest_int('min_samples_split', 75, 500),
+
+                "max_depth" : trial.suggest_int('max_depth', 4 , 14),
+                "min_samples_leaf":trial.suggest_int('min_samples_leaf', 32, 256),
+                "min_samples_split": trial.suggest_int('min_samples_split', 20, 300),
+                
+                # "minibatch_frac": trial.suggest_float('minibatch_frac', 1E-16, 1.0)
+                "minibatch_frac": trial.suggest_float('minibatch_frac', 0.1, 1.0),
             }
 
         #try:
@@ -984,9 +1025,15 @@ def predict_model(elem, X_use, y, path_all_share, path_figure_all, feature_setti
     if Model_algorithm == 'NGBoost':
         pred_test_dist.index = test_y.index # indexを指定してやる
     #######################テストデータの誤差計算
-    #誤差の計算
+    #誤差の計算 -> % 表示で誤差を示す
     try:
-        score_error_freq = (pd.Series(pred_test).apply(lambda x: 10**x).values / pd.Series(test_y).apply(lambda x: 10**x).values)*100
+        """
+        pred_test, test_y は log10 空間の値とみなし、元スケールでの「予測/正解」の比を % 表示で計算
+        score_error_freq_i = 100 × 10^(pred_i - true_i) = 100 × (10^pred_i / 10^true_i)
+        （一致なら 100%、2倍なら 200%、半分なら 50%）
+        Overflow Errorの問題を解決するため、npでの処理に変更 tag 2.1.1, 20260203
+        """
+        score_error_freq = 100.0 * np.power(10.0, np.asarray(pred_test, float) - np.asarray(test_y, float))
         test_error_all[elem] = pd.Series(score_error_freq, index = test_y.index)
         test_error_all.to_excel(path_all_share + "/test_error_all.xlsx")
     except OverflowError:
@@ -1001,20 +1048,37 @@ def predict_model(elem, X_use, y, path_all_share, path_figure_all, feature_setti
             print(f"⚠️ {elem}でエラーが発生しました。")
     #誤差を格納していく
 
+    ####################### testデータ
+    # log scale -> liner scaleに変換
+    y_raw_s = pd.Series(
+        np.power(10.0, test_y.to_numpy(dtype=float)),
+        index=test_y.index,
+        name=test_y.name
+    )
+    test_data_all = pd.concat([y_raw_s, test_x], axis=1)
+    test_data_all["RAW"] = y_raw_s
 
-    #######################testデータ
-    #この際のtest_yを代入していく
-    test_data_all = pd.concat([test_y.apply(lambda x: 10**x), test_x], axis = 1)
-    test_data_all["RAW"] = test_y.apply(lambda x: 10**x)
-    try:
-        test_data_all["predict"] = pd.Series(pred_test, index = test_y.index).apply(lambda x: 10**x)
-    except OverflowError:
-        print(f"⚠️ {elem}で計算オーバーフローが発生しました。(L1012)")
-        test_data_all["predict"] = None
+    # log scale -> liner scaleに変換
+    pred_raw = np.power(10.0, np.asarray(pred_test, dtype=float))
+    assert len(pred_raw) == len(test_y), f"len mismatch: pred={len(pred_raw)} != y={len(test_y)}"
+
+    # “オーバーフロー相当” (inf) を検知して NaN にする
+    mask = ~np.isfinite(pred_raw)
+    if mask.any():
+        print(f"⚠️ {elem}で計算オーバーフローが発生しました。(predict: {mask.sum()}件) (L1028)")
+        pred_raw[mask] = np.nan
+    # test data allにpredict dataを保存
+    test_data_all["predict"] = pd.Series(pred_raw, index=test_y.index)
+
+    # test data allに推定誤差を保存
     if Model_algorithm == 'NGBoost':
         test_data_all["predict_Dist"] = pred_test_dist
+    # test data allを保存
     test_data_all.to_excel(path_all_share + "/test_data_all.xlsx")
 
+    #######################################################################
+    # 簡易的な散布図を作成する
+    #######################################################################
     try:
         test_data_all.plot.scatter(x='RAW', y='predict', figsize=(3, 3), alpha=0.05)
         plt.xscale('log')
