@@ -593,7 +593,6 @@ def model_predict(feature_setting, model, X_data):
 
     return Y_pred, Y_pred_dist
 
-
 def predict_cv(params, feature_setting, Fold_num, train_x, train_y, test_x, test_y):
 
     ############ model append list
@@ -685,7 +684,7 @@ def predict_cv(params, feature_setting, Fold_num, train_x, train_y, test_x, test
         # cv_score = np.average(np.sqrt((predicted_cv_y - cv_y)**2))
 
         ############################################################
-        # RMSE
+        # RMSE (Safe implementation)
         ############################################################
         p_tr = np.asarray(predicted_train_y, dtype=float)
         y_tr = train_y_valid.to_numpy(dtype=float)
@@ -700,7 +699,17 @@ def predict_cv(params, feature_setting, Fold_num, train_x, train_y, test_x, test
         p_cv = np.asarray(predicted_cv_y, dtype=float)
         y_cv = cv_y.to_numpy(dtype=float)
         e_cv = p_cv - y_cv
-        cv_score = np.sqrt(np.mean(e_cv ** 2))
+
+        # 1. NaN や Inf が混じっていないかチェック
+        if not np.all(np.isfinite(e_cv)):
+            cv_score = 1e10  # 異常値がある場合はペナルティ
+        else:
+            # 2. 2乗する前に値を制限してオーバーフローを確実に防ぐ
+            # (1e10の2乗は1e20なので、float64の限界 1e308 に対して十分安全)
+            e_cv_clipped = np.clip(e_cv, -1e10, 1e10)
+            mse_cv = np.mean(e_cv_clipped ** 2)
+            cv_score = np.sqrt(mse_cv)
+        
         ######################################################################
 
         #スコアを加えていく
@@ -1183,13 +1192,23 @@ def __main__(path_name, mobile_elem, immobile_elem, Protolith_data, Protolith_lo
         path_figure_all = path_all_share + path_4
         make_dirs(path_figure_all)
         #######################################################データinfoの保存
-        Data_info.to_excel(path_all_share + "/Data_Info.xlsx")
+        # Data_info.to_excel(path_all_share + "/Data_Info.xlsx")
         #######################################################データinfoの保存
 
 
         #######################################################使うデータの整理
         #目的yと入力データXを設定
-        data___ = Protolith_data[use_element].dropna()
+        # data___ = Protolith_data[use_element].dropna() # 
+        # 1. 処理前の行数を保持
+        initial_count = len(Protolith_data)
+        # 2. 置換と削除を実行 正の無限大(inf), 負の無限大(-inf) をまとめて NaN に置換して削除
+        data___ = Protolith_data[use_element].replace([0, np.inf, -np.inf], np.nan).dropna()
+        # 3. 処理後の行数を取得
+        final_count = len(data___)
+        # 4. 差分を表示
+        dropped_count = initial_count - final_count
+        Data_info["Nan/Inf dropped_count"] = dropped_count
+        
         print(Protolith_data[use_element].shape)
         print(data___.shape)
         #X_use
@@ -1202,6 +1221,10 @@ def __main__(path_name, mobile_elem, immobile_elem, Protolith_data, Protolith_lo
         Protolith_loc_data = Protolith_loc_data_raw.T[sample_name_list].T
         Protolith_loc_data["Sample_name"] = Protolith_loc_data.index
         #######################################################使うデータの整理
+
+        #######################################################データinfoの保存
+        Data_info.to_excel(path_all_share + "/Data_Info.xlsx")
+        #######################################################データinfoの保存
 
         #今回の流体移動元素の定義
         elem = mobile_elem[0]
