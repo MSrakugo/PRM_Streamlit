@@ -14,6 +14,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import streamlit as st
+
 def make_dirs(path):
     import os
     try:
@@ -202,34 +204,55 @@ def Preprocessing_all(raw_data):
         Primitive_not_applied_Whole_rock = class_groupby.get_group('WHOLE ROCK')
         #重複しているデータをdrop
         Primitive_not_applied_Whole_rock = Primitive_not_applied_Whole_rock.drop_duplicates()
-    #共通するcolumns
+        
     else:
         Primitive_not_applied_Whole_rock = Primitive_not_applied.copy()
     print(Primitive_not_applied_Whole_rock.shape)
-    both_elem = list(set(for_normalize_data.index) & set(Primitive_not_applied.columns))
 
     #####################################ノーマライズするためのデータをread
     num = 2
     normalize_Primitive_name = normalize_data_list[num]
     num = 3
     normalize_Chondrite_name = normalize_data_list[num]
+
     #いらないelemを落とす
     for_normalize_data_compile = for_normalize_data[[normalize_Primitive_name, normalize_Chondrite_name]]
     for_normalize_data_compile = for_normalize_data_compile.dropna()
     #ノーマライズvalueをread
-    Primitive_mantle_value = for_normalize_data_compile[normalize_Primitive_name]
-    C1_chondrite = for_normalize_data_compile[normalize_Chondrite_name]
+    Primitive_mantle_value = for_normalize_data_compile[normalize_Primitive_name].dropna()
+    C1_chondrite = for_normalize_data_compile[normalize_Chondrite_name].dropna()
+    # Normalize dataが欠損している元素をまとめる
+    blank_normalize_elem = for_normalize_data[for_normalize_data[normalize_Primitive_name].isna()].index
+
+    #Normalizeをすることができない共通するcolumns
+    both_elem = list(set(for_normalize_data.index) & set(Primitive_not_applied.columns))
     ###ノーマライズする前のデータ
     Whole_rock_before_Normalize = Primitive_not_applied_Whole_rock[both_elem]
-    ###ノーマライズしたのデータ
+    ###ノーマライズしたデータ
     Whole_rock_after_Normalize_PM = pd.DataFrame()
     Whole_rock_after_Normalize_C1 = pd.DataFrame()
     ###ノーマライズ出来ないデータ
     Whole_rock_cannot_Normalize = Primitive_not_applied_Whole_rock.drop(both_elem , axis = 1)
     ##ノーマライズ / 行列計算
-    Whole_rock_after_Normalize_PM = Whole_rock_before_Normalize/for_normalize_data['PM(SM89)']
-    Whole_rock_after_Normalize_C1 = Whole_rock_before_Normalize/for_normalize_data['CI(SM89)']
+    Whole_rock_after_Normalize_PM = Whole_rock_before_Normalize/Primitive_mantle_value
+    Whole_rock_after_Normalize_C1 = Whole_rock_before_Normalize/C1_chondrite
+
+    # Empty data in normalized data due to normalized value lack
+    empty_elem_in_normalize_data = list(set(Whole_rock_after_Normalize_PM.columns) & set(blank_normalize_elem))
+    # drop empty data
+    Whole_rock_after_Normalize_PM = Whole_rock_after_Normalize_PM.drop(empty_elem_in_normalize_data, axis = 1)
+    Whole_rock_after_Normalize_C1 = Whole_rock_after_Normalize_C1.drop(empty_elem_in_normalize_data, axis = 1)
     ########################################## Primitive mantle normalize
+    # 修正後
+    message = f"""
+    **処理が完了しました！** \n **Preprocessing has succeeded!**
+    - Primitive not applied: {list(Primitive_not_applied_Whole_rock.columns)}
+    - Cannot Normalize: {list(Whole_rock_cannot_Normalize.columns)}
+    - Normalized PM: {list(Whole_rock_after_Normalize_PM.columns)}
+    - Normalized C1: {list(Whole_rock_after_Normalize_C1.columns)}
+    """
+    st.success(message)
+
     return  Primitive_not_applied_Whole_rock, Whole_rock_cannot_Normalize, Whole_rock_after_Normalize_PM, Whole_rock_after_Normalize_C1
 
 def save_preprocessed_data(path_name, data_name, Whole_rock_RAW, Whole_rock_cannot_Normalize, Whole_rock_after_Normalize_PM, Whole_rock_after_Normalize_C1):
