@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Begin: Tue Mar  1 23:06:08 2022
-Final update: 2023/11/21
+Final update: 2026/02/08
 
 Author: 松野哲士 (Satoshi Matsuno), Tohoku university, Japan
 Contact: satoshi.matsuno.p2@dc.tohoku.ac.jp
@@ -425,26 +425,31 @@ def Spidergram_ragne_as_error_bar(data, range, scale, legend, color, style, labe
         plt.yscale("log")
     plt.errorbar(t, data.values.T, yerr = error.values, color = color, linestyle=style, capsize=5, linewidth = 3.0)
 
-
-
-def PM_to_ppm(data): # ver 241211
+def PM_to_ppm(data): # ver 260208
     now_data = data.copy()
-    for_normalize_data = pd.read_excel("List/Primitive_Mantle _ C1 Chondrite.xlsx", index_col=0)
-    for_normalize_data = for_normalize_data.loc["PM(SM89)"]
+    
+    # 1. ファイル読み込み
+    try:
+        for_normalize_data = pd.read_excel("List/Primitive_Mantle _ C1 Chondrite.xlsx", index_col=0)
+        pm_values = for_normalize_data.loc["PM(SM89)"]
+    except FileNotFoundError:
+        print("【Error】Excel file not found. Check the path: 'List/Primitive_Mantle _ C1 Chondrite.xlsx'")
+        return data
+    except KeyError:
+        print("【Error】'PM(SM89)' not found in the Excel file.")
+        return data
+
     for elem in data.columns:
-        # 普通のデータの処理
-        try: 
-            value=for_normalize_data[elem]
-            now_data[elem]= now_data[elem]*value
-        except:
-            print("This elem do not have value of PM: " + elem)
+        # 2. "_" を消してPM値のリストにあるか確認
+        elem_check = elem.replace("_", "")
 
-        # Ratio dataに対する処理　ex. Zr -> Zr_ として記録されている
-        elem_ratio = elem + "_"
-        try: # 普通のデータの処理
-            value=for_normalize_data[elem] # ここは、通常のelemを使って、elemのPM valueを抽出
-            now_data[elem_ratio]= now_data[elem_ratio]*value
-        except:
-            print("This elem do not have value of PM: " + elem)
-
+        if elem_check not in pm_values.index:
+            # ターミナルに警告を表示
+            print(f"【Warning】'{elem}' was skipped: PM value for '{elem_check}' not found.")
+            continue
+        
+        # 3. 計算実行
+        value = pm_values[elem_check]
+        now_data[elem] = now_data[elem] * value
+            
     return now_data

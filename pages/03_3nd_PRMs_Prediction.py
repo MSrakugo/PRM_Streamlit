@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Begin: Tue Mar  1 23:06:08 2022
-Final update: 2024/10/29
+Final update: 2026/02/08
 
 Author: 松野哲士 (Satoshi Matsuno), Tohoku university, Japan
 Contact: satoshi.matsuno.p2@dc.tohoku.ac.jp
@@ -251,15 +251,7 @@ else:
         duplicates_df.columns = ratio_elem_renew_name_list
         PM = pd.concat([PM, duplicates_df], axis=1)
 
-    ###### For ratio model -> PMにMajor元素の自己推定するためのデータを追加 ver 240914
-    #major_duplicate_name = [elem + '_' for elem in major_duplicate]
-    # major_duplicate を target_elements と rename_elements に従ってリネーム
-    #renamed_major_duplicate = [rename_elements[target_elements.index(elem)] for elem in major_duplicate]
-    #PM[major_duplicate_name] = PM[major_duplicate].copy()
-    #PM[renamed_major_duplicate] = PM[renamed_major_duplicate].copy()
-    #st.write(major_duplicate_name, renamed_major_duplicate)
-    ###### For ratio model -> PMにMajor元素の自己推定するためのデータを追加 ver 240914
-
+    print("######################## Prediction")
     ###### estimation by PRM
     # model folder
     now_model_folder_name = model_path
@@ -275,6 +267,7 @@ else:
 
     # estimate
     mobile_data_compile, spidergram_data_compile, mobile_data_compile_dist, spidergram_data_compile_dist = prm_predict.predict_protolith(mobile_elem, immobile_elem, PM, Location_Ref_Data, now_model_folder_name)
+    st.success("Protolith estimation have succeeded!")
 
     # data compile
     protolith_data = spidergram_data_compile.copy()
@@ -282,6 +275,7 @@ else:
     element_mobility = PM[protolith_data.columns]/protolith_data
 
     #################################################### Download
+    print("######################## Download")
     n = 5
     col_list = [1] * n
     st.subheader("Download PRMs results")
@@ -326,14 +320,16 @@ else:
             mime='text/csv',
             )
     #################################################### Download
-#################################################################################### Main
+    #################################################################################### Main
 
-#################################################################################### Visualization
+    #################################################################################### Visualization
     ###### Data visualization
+
+    print("######################## visualization")
     st.subheader("Visualize your data")
 
-    # elements_list_nowの順番で表示するため、元素listの準備
-    elements_list_now = elements_list
+    # 元素listの準備
+    elements_list_now = immobile_elem + mobile_elem
     elem_use = mobile_elem + immobile_elem
     elem_remove = set(elements_list_now) ^ set(elem_use)
     elements_list_now = [i for i in elements_list_now if i not in elem_remove]

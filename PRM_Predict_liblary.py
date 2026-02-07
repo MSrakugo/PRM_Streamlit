@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Begin: Tue Mar  1 23:06:08 2022
-Final update: 2023/11/21
+Final update: 2026/02/08
 
 Author: 松野哲士 (Satoshi Matsuno), Tohoku university, Japan
 Contact: satoshi.matsuno.p2@dc.tohoku.ac.jp
@@ -251,8 +251,7 @@ def predict_model(elem, X_use, y,  path_all_share, path_figure_all, path_all_mod
         pkl_opne_path_1 = path_all_models + "/Model_setting.pkl"
         feature_setting = pickle.load(open(pkl_opne_path_1 , mode='rb'))
     except:
-        st.write(elem)
-        st.write("/Model_setting.pkl maybe not exist")
+        pass 
 
     #pickleからModel_settingの呼び出し
     try:
@@ -368,14 +367,13 @@ def model_main(mobile_elem, immobile_elem, Raw_metamorphic_rock, Raw_metamorphic
 
     #######################################################ディレクトリの作成
     #pathとフォルダの準備
-    path_1 = model_folder_name + "/" + str(immobile_elem).strip("[").strip("]").strip("'")
+    path_1 = model_folder_name  #+ "/" + str(immobile_elem).strip("[").strip("]").strip("'")
     path_2 = "/" + str(mobile_elem).strip("[").strip("]").strip("'")
+    
     #全体のpathの設定
     path_all_share = path_1 + path_2
-
     #全体のpathの設定
     path_all_models = path_1 + path_2
-    print(path_all_models)
 
     path_4 = "/Figure"
     path_figure_all = path_all_share + path_4
@@ -402,7 +400,7 @@ def model_main(mobile_elem, immobile_elem, Raw_metamorphic_rock, Raw_metamorphic
 
     return mobile_data_compile, spidergram_data_compile, mobile_data_compile_dist, spidergram_data_compile_dist
 
-@st.cache
+@st.cache_data
 def predict_protolith(mobile_elem_list, immobile_elem, Raw_metamorphic_rock, Raw_metamorphic_rock_location, now_model_folder_name):
 
     # DEFINE 箱を準備
