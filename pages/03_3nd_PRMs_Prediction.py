@@ -133,31 +133,59 @@ folder_input_variation_name = glob.glob(model_path+"/**")
 input_variation_list = []
 for input_variation in folder_input_variation_name:
     input_variation_list.append(input_variation.split("/")[-1]) # / でSplitしたlistの一番最後をappend
+if "Protolith" in input_variation_list:
+    input_variation_list.remove("Protolith") #Model_explainをListから削除
+if "USE_DATA.xlsx" in input_variation_list:
+    input_variation_list.remove("USE_DATA.xlsx") #Model_explainをListから削除
+if "0_error_list.xlsx" in input_variation_list:
+    input_variation_list.remove("0_error_list.xlsx") #Model_explainをListから削除
 Model_info.write("Input variation list in " + Model_name + " folder")
 Model_info.table(input_variation_list)
 ###### Input variation check
 
-###### Select element
+###### Select immobole element setting for selecting model
 if raw_data is None:
     pass
 else:
-    elements_list = ['Rb', 'Ba', 'Th', 'U', 'Nb', 'K', 'La', 'Ce', 'Pb', 'Sr', 'Nd', 'Zr', 'Ti', 'Y', 'Yb','Lu', 'SiO2', 'Al2O3', 'MgO', 'Na2O', 'P2O5', 'CaO', 'MnO', 'FeO', 'K2O', 'TiO2']
-    immobile_elem=Model_Setting.multiselect("Choose the immobile elements (Check available models)", elements_list, ["Zr", "Th", "Ti", "Nb"])
-    #mobile_elem=Model_Setting.multiselect("Choose the ALL elements (Contain both mobile and immobile elements)", elements_list, ['Rb', 'Ba', 'Th', 'U', 'Nb', 'K', 'La', 'Ce', 'Pb', 'Sr', 'Nd', 'Zr', 'Ti', 'Y', 'Yb','Lu','SiO2','MgO', 'Na2O', 'P2O5', 'CaO'])
-    mobile_elem=Model_Setting.multiselect("Choose the Mobile elements", elements_list, ['Rb', 'Ba', 'U', 'K', 'La', 'Ce', 'Pb', 'Sr', 'Nd', 'Y', 'Yb','Lu','SiO2','MgO', 'Na2O', 'P2O5', 'CaO', 'TiO2'])
+    immobile_elem = Model_Setting.selectbox("Select immobile elements", input_variation_list) # Select Model
+# inputのsettingをratioとして使う場合の判定
+if "Ratio" in Model_name:
+    Ratio_flag = Model_Setting.checkbox("Use in Ratio", value=True)
+else:
+    Ratio_flag = Model_Setting.checkbox("Use in Ratio", value=False)
+###### Select immobole element setting for selecting model
 
-Ratio_flag = Model_Setting.checkbox("Ratio")
-###### Select element
-
-############################################################################## Output variation check ver 241029 Display for Main 
-###### DEFINE Model path
-model_path_output_check = "0_PRM_Model_Folder/"+ Algorithm_name +"/" + Model_name+ "/" + str(immobile_elem).strip("[").strip("]").strip("'")
-folder_output_variation_name = glob.glob(model_path_output_check+"/**")
+###### Output variation check
+model_path = "0_PRM_Model_Folder/"+ Algorithm_name +"/" + Model_name +"/" + immobile_elem ###### DEFINE Model path
+folder_output_variation_name = glob.glob(model_path+"/**")
 output_variation_list = []
 for output_variation in folder_output_variation_name:
     output_variation_list.append(output_variation.split("/")[-1]) # / でSplitしたlistの一番最後をappend
-Model_info.write("Model Output Variation:")
-Model_info.table(output_variation_list) # check output_variation
+if "Model_explain" in output_variation_list:
+    output_variation_list.remove("Model_explain") #Model_explainをListから削除
+Model_info.write("Output variation list in " + Model_name + " folder")
+Model_info.table(output_variation_list)
+###### Output variation check
+
+###### Select output element setting for selecting model
+if raw_data is None:
+    pass
+else:
+    # DEFINE OUTPUT
+    mobile_elem=Model_Setting.multiselect("Select output elements", output_variation_list, output_variation_list)
+###### Select output element setting for selecting model
+
+
+############################################################################## Output variation check ver 241029 Display for Main 
+###### DEFINE Model path
+# model_path_output_check = "0_PRM_Model_Folder/"+ Algorithm_name +"/" + Model_name+ "/" + str(immobile_elem).strip("[").strip("]").strip("'")
+# model_path_output_check = "0_PRM_Model_Folder/"+ Algorithm_name +"/" + Model_name +"/" + immobile_elem ###### DEFINE Model path
+# folder_output_variation_name = glob.glob(model_path_output_check+"/**")
+# output_variation_list = []
+# for output_variation in folder_output_variation_name:
+#     output_variation_list.append(output_variation.split("/")[-1]) # / でSplitしたlistの一番最後をappend
+# Model_info.write("Model Output Variation:")
+# Model_info.table(output_variation_list) # check output_variation
 ###### Input variation check
 ############################################################################## Output variation check ver 241029 Display for Main 
 
@@ -185,34 +213,6 @@ if uploaded_file is not None:
 ###### data information updated
 ######################## Output setting
 
-###### For ratio model ->Input自身を推定する
-#Caution for Ratio ver240707
-#例えば、Ti, Nb, Zr, Y, Thの比 → Zr濃度 を求めることは想定していない（基本的に重複削除の方針）。
-#そのため、Ratioデータについては"_"を末尾につけることで、他元素かつPM normalizationに含まれない元素として例外処理する。
-#例えば、Ti, Nb, Zr, Y, Thの比 → Zr_ という形として記述する
-if Ratio_flag:
-    ######## 準備
-    # List of elements to check for
-    #target_elements = ['Si', 'Al', 'Mg', 'Na', 'P', 'Ca', 'Mn', 'Fe', 'K', 'Ti']
-    #rename_elements = ['SiO2', 'Al2O3', 'MgO', 'Na2O', 'P2O5', 'CaO', 'MnO', 'FeO', 'K2O', 'TiO2']
-    ######## 準備
-    # 重複元素を_をつけて別元素として記録
-    duplicates, duplicates_dict, mobile_elem_all = construction_PRM.check_and_modify_duplicates(mobile_elem, immobile_elem)
-    
-    # duplicates に含まれている target_elements を major_duplicate としてリスト化->PMで処理してから追加の際に使う ver 240914
-    #major_duplicate = [elem for elem in target_elements if elem in duplicates]
-    # major_duplicate を target_elements と rename_elements に従ってリネーム
-    #renamed_major_duplicate = [rename_elements[target_elements.index(elem)] for elem in major_duplicate]
-
-    duplicates_df = raw_data[duplicates].copy()
-    duplicates_df.rename(columns=duplicates_dict, inplace=True)
-    duplicates_df = duplicates_df.rename(columns=duplicates_dict)
-    duplicates_df.columns = [elem + '_' for elem in duplicates]
-    
-    # elem_allとWhole_rock_RAWに追加
-    mobile_elem = mobile_elem+[elem + '_' for elem in duplicates]
-    raw_data = pd.concat([raw_data, duplicates_df], axis=1)
-
 ###### モデル推定開始のフラグ
 #flag_MODEL_RUN=1
 ###### モデル推定開始のフラグ
@@ -230,6 +230,26 @@ else:
         pass
     ###### Data check/preprocessing
     PM, Location_Ref_Data = prm.preprocessing_normalize_output(raw_data, DataBase, SAMPLE_INFO, location_info)
+    st.success("Data preprocessing has succeeded.")
+
+    ###### For ratio model ->Input自身を推定する
+    #Caution for Ratio ver240707
+    #例えば、Ti, Nb, Zr, Y, Thの比 → Zr濃度 を求めることは想定していない（基本的に重複削除の方針）。
+    #そのため、Ratioデータについては"_"を末尾につけることで、他元素かつPM normalizationに含まれない元素として例外処理する。
+    #例えば、Ti, Nb, Zr, Y, Thの比 → Zr_ という形として記述する
+    if Ratio_flag:
+        # "_"の有無で判定
+        ratio_elem_raw_name_list = []
+        ratio_elem_renew_name_list = []
+        for mobile_elem_now in mobile_elem:
+            if "_" in mobile_elem_now:
+                ratio_elem_renew_name_list.append(mobile_elem_now)
+                ratio_elem_raw_name_list.append(mobile_elem_now.replace("_", ""))
+
+        # 生のデータの名前に、_を加える
+        duplicates_df = PM[ratio_elem_raw_name_list].copy()
+        duplicates_df.columns = ratio_elem_renew_name_list
+        PM = pd.concat([PM, duplicates_df], axis=1)
 
     ###### For ratio model -> PMにMajor元素の自己推定するためのデータを追加 ver 240914
     #major_duplicate_name = [elem + '_' for elem in major_duplicate]
@@ -243,7 +263,16 @@ else:
     ###### estimation by PRM
     # model folder
     now_model_folder_name = model_path
-    st.write(model_path)
+
+    Model_prediction_info = st.expander("Model Folder Information")
+    Model_prediction_info.success(f"Model : {model_path} ")
+    Model_prediction_info.success(f"Input : {immobile_elem} ")
+    Model_prediction_info.success(f"Output : {mobile_elem} ")
+    Model_prediction_info.success(f"Ratio : {Ratio_flag} ")
+
+    # immobile elemをlistとして扱うため、修正
+    immobile_elem = [x.strip(" '") for x in immobile_elem.split(",")]
+
     # estimate
     mobile_data_compile, spidergram_data_compile, mobile_data_compile_dist, spidergram_data_compile_dist = prm_predict.predict_protolith(mobile_elem, immobile_elem, PM, Location_Ref_Data, now_model_folder_name)
 
