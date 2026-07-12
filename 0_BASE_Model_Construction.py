@@ -213,22 +213,6 @@ Caution for Ratio ver240707
 そのため、Ratioデータについては"_"を末尾につけることで、他元素かつPM normalizationに含まれない元素として例外処理する。
 例えば、Ti, Nb, Zr, Y, Thの比 → Zr_ という形として記述する
 """
-if PRM_construction_Setting == 'Ratio':
-    # 重複元素を_をつけて別元素として記録
-    duplicates, duplicates_dict, mobile_elem_all = construction_PRM.check_and_modify_duplicates(mobile_elem_all, immobile_elem_all)
-    duplicates_df = Whole_rock_RAW[duplicates]
-    duplicates_df.rename(columns=duplicates_dict, inplace=True)
-    duplicates_df = duplicates_df.rename(columns=duplicates_dict)
-    
-    # elem_allとWhole_rock_RAWに追加
-    elem_all = elem_all+[elem + '_' for elem in duplicates]
-    mobile_elem_all = elem_all
-    Whole_rock_RAW = pd.concat([Whole_rock_RAW, duplicates_df], axis=1)
-
-    # Compile ratio data
-    ratio_self_est = duplicates
-    ratio_self_est_name = [elem + '_' for elem in duplicates]
-
 #### list elem_allに入っていない要素をWhole_rock_after_Normalize_PM.columnsから見つけ出す
 # 基本的にはMajor元素に対する処理
 columns = Whole_rock_after_Normalize_PM.columns
@@ -236,9 +220,24 @@ columns = Whole_rock_after_Normalize_PM.columns
 missing_elements = [elem for elem in elem_all if elem not in columns]
 Whole_rock_after_Normalize_PM[missing_elements] = Whole_rock_RAW[missing_elements].copy() # Majorを入れる
 
-"""ver 241211 Modified for Ratio data -> PM Normalizeを実装: いままではPM normalizeせずにモデルを構築していた""" 
+############################################################################ For Ratio model ver 240918
 if PRM_construction_Setting == 'Ratio':
-    Whole_rock_after_Normalize_PM[ratio_self_est_name] = Whole_rock_after_Normalize_PM[ratio_self_est].copy() # ex. "Zr_"もノーマライズされた値によって比を計算し、推定に使う
+    # immobile elementと同名の目的元素を、PM前処理後の値から作成する
+    duplicates, duplicates_dict, mobile_elem_all = construction_PRM.check_and_modify_duplicates(mobile_elem_all, immobile_elem_all)
+    ratio_element_names = list(duplicates_dict.values())
+    duplicates_df = construction_PRM.make_ratio_duplicate_columns(
+        Whole_rock_after_Normalize_PM,
+        ratio_element_names,
+    )
+
+    # elem_allとPM前処理後データに追加
+    elem_all = elem_all + ratio_element_names
+    mobile_elem_all = elem_all
+    Whole_rock_after_Normalize_PM = pd.concat(
+        [Whole_rock_after_Normalize_PM, duplicates_df],
+        axis=1,
+    )
+############################################################################ For Ratio model ver 240918
 #### list elem_allに入っていない要素をWhole_rock_after_Normalize_PM.columnsから見つけ出す
 
 #### Compile use data
