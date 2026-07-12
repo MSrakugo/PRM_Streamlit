@@ -238,17 +238,8 @@ else:
     #そのため、Ratioデータについては"_"を末尾につけることで、他元素かつPM normalizationに含まれない元素として例外処理する。
     #例えば、Ti, Nb, Zr, Y, Thの比 → Zr_ という形として記述する
     if Ratio_flag:
-        # "_"の有無で判定
-        ratio_elem_raw_name_list = []
-        ratio_elem_renew_name_list = []
-        for mobile_elem_now in mobile_elem:
-            if "_" in mobile_elem_now:
-                ratio_elem_renew_name_list.append(mobile_elem_now)
-                ratio_elem_raw_name_list.append(mobile_elem_now.replace("_", ""))
-
-        # 生のデータの名前に、_を加える
-        duplicates_df = PM[ratio_elem_raw_name_list].copy()
-        duplicates_df.columns = ratio_elem_renew_name_list
+        # PM前処理後の元元素から、末尾が "_" の目的元素を作成する
+        duplicates_df = construction_PRM.make_ratio_duplicate_columns(PM, mobile_elem)
         PM = pd.concat([PM, duplicates_df], axis=1)
 
     print("######################## Prediction")

@@ -26,6 +26,7 @@ pages/OLD/
 0_Model_Construction_Protolith_Composition_Data/PRM_For_Metabasalt/Data Visualization
 Kelley_Data/NGBoost/
 picture/
+tests/
 
 # Python #
 __pycache__/

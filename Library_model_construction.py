@@ -147,6 +147,23 @@ def check_and_modify_duplicates(mobile_list, immobile_list):
 ################################################################# 重複チェック for Ratio elements
 
 
+def make_ratio_duplicate_columns(data, ratio_element_names):
+    """Create Ratio target aliases from already-preprocessed columns."""
+    ratio_element_names = [
+        element_name
+        for element_name in ratio_element_names
+        if element_name.endswith("_")
+    ]
+    source_element_names = [
+        element_name.removesuffix("_")
+        for element_name in ratio_element_names
+    ]
+
+    duplicate_columns = data[source_element_names].copy()
+    duplicate_columns.columns = ratio_element_names
+    return duplicate_columns
+
+
 ################################################# Define class for model construction
 class Models: # pickle for model
     def __init__(self, model, sc, pca, ICA):
