@@ -409,6 +409,27 @@ else:
                 file_name=fn,
                 mime="image/png"
             )
+
+        # Ratioモデルで推定した、末尾が "_" の元素の移動度を一覧表示する
+        ratio_mobility_columns = [
+            column
+            for column in element_mobility.columns
+            if column.endswith("_")
+        ]
+        if ratio_mobility_columns:
+            ratio_element_mobility = element_mobility[ratio_mobility_columns]
+
+            st.markdown("#### Ratio element mobility")
+            st.dataframe(ratio_element_mobility, use_container_width=True)
+
+            st.markdown("#### Mean and variance")
+            ratio_mobility_statistics = pd.DataFrame(
+                {
+                    "Mean": ratio_element_mobility.mean(axis=1),
+                    "Variance": ratio_element_mobility.var(axis=1),
+                }
+            )
+            st.dataframe(ratio_mobility_statistics, use_container_width=True)
         ######################################################################## Mobility
 #################################################################################### Visualization
 
