@@ -410,13 +410,17 @@ else:
                 mime="image/png"
             )
 
-        # Ratioモデルで推定した、末尾が "_" の元素の移動度を一覧表示する
-        ratio_mobility_columns = [
-            column
-            for column in element_mobility.columns
-            if column.endswith("_")
-        ]
-        if ratio_mobility_columns:
+        ######################################################################## Mobility
+
+    # Ratioモデルで推定した、末尾が "_" の元素の移動度を一覧表示する
+    ratio_mobility_columns = [
+        column
+        for column in element_mobility.columns
+        if column.endswith("_")
+    ]
+    
+    if ratio_mobility_columns:
+        with st.expander("See immobile element mobility"):
             ratio_element_mobility = element_mobility[ratio_mobility_columns]
 
             st.markdown("#### Ratio element mobility")
@@ -430,7 +434,6 @@ else:
                 }
             )
             st.dataframe(ratio_mobility_statistics, use_container_width=True)
-        ######################################################################## Mobility
 #################################################################################### Visualization
 
 App_Library.page_footer()
