@@ -44,6 +44,15 @@ from sklearn.tree import DecisionTreeRegressor
 # plot
 import matplotlib.pyplot as plt
 
+
+ADDED_EVALUATION_OUTPUT_FILES = (
+    "Model_evaluation_scores_log10.xlsx",
+    "Optuna_trials.xlsx",
+    "Optuna_trials_all_scores.xlsx",
+    "Optuna_training_scores.pdf",
+)
+
+
 def make_dirs(path):
     try:
         os.makedirs(path)
@@ -406,49 +415,53 @@ def feature_making(feature_setting, train_x, test_x, cv_x):
         #特徴量の設定
         #X_allに特徴量をまとめていく
         X_all_train = pd.DataFrame()
-        X_all_test = pd.DataFrame()
+        X_all_test = pd.DataFrame() if test_x is not None else None
         X_all_cv = pd.DataFrame()
 
         if feature_setting.setting_X_raw == "on":
             X_all_train = pd.concat([X_all_train, train_x], axis = 1)
-            X_all_test = pd.concat([X_all_test, test_x], axis = 1)
+            if test_x is not None:
+                X_all_test = pd.concat([X_all_test, test_x], axis = 1)
             X_all_cv = pd.concat([X_all_cv, cv_x], axis = 1)
         elif feature_setting.setting_X_log == "on":
             #LOG変換
             train_x_log = train_x.apply(lambda x:np.log10(x))
-            test_x_log = test_x.apply(lambda x:np.log10(x))
+            test_x_log = test_x.apply(lambda x:np.log10(x)) if test_x is not None else None
             cv_x_log = cv_x.apply(lambda x:np.log10(x))
 
             X_all_train = pd.concat([X_all_train, train_x_log], axis = 1)
-            X_all_test = pd.concat([X_all_test, test_x_log], axis = 1)
+            if test_x_log is not None:
+                X_all_test = pd.concat([X_all_test, test_x_log], axis = 1)
             X_all_cv = pd.concat([X_all_cv, cv_x_log], axis = 1)
 
         #Product log変換するかもTest
         if feature_setting.setting_X_product == "on":
             if feature_setting.setting_X_product_log == "on":
                 train_x_product = elem_product_list(train_x).apply(lambda x:np.log10(x))
-                test_x_product = elem_product_list(test_x).apply(lambda x:np.log10(x))
+                test_x_product = elem_product_list(test_x).apply(lambda x:np.log10(x)) if test_x is not None else None
                 cv_x_product = elem_product_list(cv_x).apply(lambda x:np.log10(x))
             else:
                 train_x_product = elem_product_list(train_x)
-                test_x_product = elem_product_list(test_x)
+                test_x_product = elem_product_list(test_x) if test_x is not None else None
                 cv_x_product = elem_product_list(cv_x)
             X_all_train = pd.concat([X_all_train, train_x_product], axis = 1)
-            X_all_test = pd.concat([X_all_test, test_x_product], axis = 1)
+            if test_x_product is not None:
+                X_all_test = pd.concat([X_all_test, test_x_product], axis = 1)
             X_all_cv = pd.concat([X_all_cv, cv_x_product], axis = 1)
 
         #Ratio log変換するかもTest
         if feature_setting.setting_X_ratio == "on":
             if feature_setting.setting_X_ratio_log == "on":
                 train_x_ratio = elem_ratio_list(train_x).apply(lambda x:np.log10(x))
-                test_x_ratio = elem_ratio_list(test_x).apply(lambda x:np.log10(x))
+                test_x_ratio = elem_ratio_list(test_x).apply(lambda x:np.log10(x)) if test_x is not None else None
                 cv_x_ratio = elem_ratio_list(cv_x).apply(lambda x:np.log10(x))
             else:
                 train_x_ratio = elem_ratio_list(train_x)
-                test_x_ratio = elem_ratio_list(test_x)
+                test_x_ratio = elem_ratio_list(test_x) if test_x is not None else None
                 cv_x_ratio = elem_ratio_list(cv_x)
             X_all_train = pd.concat([X_all_train, train_x_ratio], axis = 1)
-            X_all_test = pd.concat([X_all_test, test_x_ratio], axis = 1)
+            if test_x_ratio is not None:
+                X_all_test = pd.concat([X_all_test, test_x_ratio], axis = 1)
             X_all_cv = pd.concat([X_all_cv, cv_x_ratio], axis = 1)
 
         #Standard_scaler&次元削減の初期設定
@@ -472,12 +485,12 @@ def feature_making(feature_setting, train_x, test_x, cv_x):
             if feature_setting.setting_NORMAL_OR_LOG == "on":
                 sc.fit(train_x_log)
                 s_scaler_train = pd.DataFrame(sc.transform(train_x_log), index = train_x.index)
-                s_scaler_test = pd.DataFrame(sc.transform(test_x_log), index = test_x.index)
+                s_scaler_test = pd.DataFrame(sc.transform(test_x_log), index = test_x.index) if test_x_log is not None else None
                 s_scaler_cv = pd.DataFrame(sc.transform(cv_x_log), index = cv_x.index)
             else:
                 sc.fit(train_x)
                 s_scaler_train = pd.DataFrame(sc.transform(train_x), index = train_x.index)
-                s_scaler_test = pd.DataFrame(sc.transform(test_x), index = test_x.index)
+                s_scaler_test = pd.DataFrame(sc.transform(test_x), index = test_x.index) if test_x is not None else None
                 s_scaler_cv = pd.DataFrame(sc.transform(cv_x), index = cv_x.index)
 
             #PCA
@@ -485,21 +498,23 @@ def feature_making(feature_setting, train_x, test_x, cv_x):
                 #Fit & Predict
                 pca.fit(s_scaler_train)
                 pca_train = pd.DataFrame(pca.fit_transform(s_scaler_train), index = train_x.index, columns=PCA_index)
-                pca_test = pd.DataFrame(pca.transform(s_scaler_test), index = test_x.index, columns=PCA_index)
+                pca_test = pd.DataFrame(pca.transform(s_scaler_test), index = test_x.index, columns=PCA_index) if s_scaler_test is not None else None
                 pca_cv = pd.DataFrame(pca.transform(s_scaler_cv), index = cv_x.index, columns=PCA_index)
                 #Concat
                 X_all_train = pd.concat([X_all_train, pca_train], axis = 1)
-                X_all_test = pd.concat([X_all_test, pca_test], axis = 1)
+                if pca_test is not None:
+                    X_all_test = pd.concat([X_all_test, pca_test], axis = 1)
                 X_all_cv = pd.concat([X_all_cv, pca_cv], axis = 1)
             #ICA
             if feature_setting.setting_ICA == "on":
                 ICA.fit(s_scaler_train)
                 ICA_train = pd.DataFrame(ICA.fit_transform(s_scaler_train), index = train_x.index, columns=ICA_index)
-                ICA_test = pd.DataFrame(ICA.transform(s_scaler_test), index = test_x.index, columns=ICA_index)
+                ICA_test = pd.DataFrame(ICA.transform(s_scaler_test), index = test_x.index, columns=ICA_index) if s_scaler_test is not None else None
                 ICA_cv = pd.DataFrame(ICA.transform(s_scaler_cv), index = cv_x.index, columns=ICA_index)
                 #Concat
                 X_all_train = pd.concat([X_all_train, ICA_train], axis = 1)
-                X_all_test = pd.concat([X_all_test, ICA_test], axis = 1)
+                if ICA_test is not None:
+                    X_all_test = pd.concat([X_all_test, ICA_test], axis = 1)
                 X_all_cv = pd.concat([X_all_cv, ICA_cv], axis = 1)
         else :
             sc = 0
@@ -619,7 +634,11 @@ def calculate_ensemble_prediction_and_rmse(test_predictions, test_y):
     return pred_test, test_score
 
 
-def predict_cv(params, feature_setting, Fold_num, train_x, train_y, test_x, test_y):
+def predict_cv(params, feature_setting, Fold_num, train_x, train_y, test_x=None, test_y=None):
+
+    if (test_x is None) != (test_y is None):
+        raise ValueError("test_x and test_y must be provided together")
+    evaluate_holdout = test_x is not None
 
     ############ model append list
     models = []
@@ -663,7 +682,7 @@ def predict_cv(params, feature_setting, Fold_num, train_x, train_y, test_x, test
         #Cross_validationによる分離
         train_x_valid, cv_x = train_x.iloc[train_index], train_x.iloc[cv_index]
         train_y_valid, cv_y = train_y.iloc[train_index], train_y.iloc[cv_index]
-        test_x_valid = test_x
+        test_x_valid = test_x if evaluate_holdout else None
         #Cross_validationによる分離
 
         ###########################################特徴量の設定
@@ -684,18 +703,21 @@ def predict_cv(params, feature_setting, Fold_num, train_x, train_y, test_x, test
 
         #predict
         predicted_train_y, predicted_dist_train_y = model_predict(feature_setting, model, train_x_valid) ## model.predict(example)
-        predicted_test_y, predicted_dist_test_y = model_predict(feature_setting, model, test_x_valid)
+        if evaluate_holdout:
+            predicted_test_y, predicted_dist_test_y = model_predict(feature_setting, model, test_x_valid)
         predicted_cv_y, predicted_dist_cv_y = model_predict(feature_setting, model, cv_x)
 
         #predict append
         train_predict_append.append(predicted_train_y)
-        test_predict_append.append(predicted_test_y)
+        if evaluate_holdout:
+            test_predict_append.append(predicted_test_y)
         cv_predict_append.append(predicted_cv_y)
         cv_indexes.append(cv_y.index)
 
         #predict dist append
         train_predict_dist_append.append(predicted_dist_train_y)
-        test_predict_dist_append.append(predicted_dist_test_y)
+        if evaluate_holdout:
+            test_predict_dist_append.append(predicted_dist_test_y)
         cv_predict_dist_append.append(predicted_dist_cv_y)
 
         #score myself
@@ -737,21 +759,28 @@ def predict_cv(params, feature_setting, Fold_num, train_x, train_y, test_x, test
 
         #Dist スコアを加えていく ## https://www.statology.org/averaging-standard-deviations/
         train_score_dist_append.append(np.sqrt(np.average((predicted_dist_train_y)**2)))
-        test_score_dist_append.append(np.sqrt(np.average((predicted_dist_test_y)**2)))
+        if evaluate_holdout:
+            test_score_dist_append.append(np.sqrt(np.average((predicted_dist_test_y)**2)))
         cv_score_dist_append.append(np.sqrt(np.average((predicted_dist_cv_y)**2)))
 
-    # fold予測の平均を最終予測とし、同じ予測値に対してTest RMSEを計算する
-    pred_test, test_score = calculate_ensemble_prediction_and_rmse(
-        test_predict_append,
-        test_y,
-    )
-    test_predict_dist_append = pd.DataFrame(test_predict_dist_append)**2 # ２乗
-    test_predict_dist_append = test_predict_dist_append.mean()
-    pred_test_dist = test_predict_dist_append**(1/2)
+    pred_test = None
+    test_score = None
+    pred_test_dist = None
+    test_score_dist = None
+    if evaluate_holdout:
+        # fold予測の平均を最終予測とし、同じ予測値に対してTest RMSEを計算する
+        pred_test, test_score = calculate_ensemble_prediction_and_rmse(
+            test_predict_append,
+            test_y,
+        )
+        test_predict_dist_append = pd.DataFrame(test_predict_dist_append)**2 # ２乗
+        test_predict_dist_append = test_predict_dist_append.mean()
+        pred_test_dist = test_predict_dist_append**(1/2)
+        test_score_dist = np.mean(test_score_dist_append)
 
     # Test scoreは、保存・利用される最終アンサンブル予測のlog10 RMSE
     scores = [np.mean(train_score_append), test_score, np.mean(cv_score_append)]
-    scores_dist = [np.mean(train_score_dist_append), np.mean(test_score_dist_append), np.mean(cv_score_dist_append)]
+    scores_dist = [np.mean(train_score_dist_append), test_score_dist, np.mean(cv_score_dist_append)]
 
     feature_name = train_x_valid.columns
 
@@ -761,19 +790,8 @@ def predict_cv(params, feature_setting, Fold_num, train_x, train_y, test_x, test
 
 ################################################################################################ Parameter tuning
 
-## global 変数　→ここにスコアを格納（直接持っていくのが難しいため） 'train', 'cv', 'test'
-score_holder_list = []
-study_optuna_score =[]
-before_score = 10**10
-evals_result_append_best = {}
-
-def score_holder_define():
-    #初期化
-    global score_holder_list
-    score_holder_list=[]
-
 ########### if文入れると遅くなるので、改良する必要あり→そこまで影響ないかも？
-def objective_define(feature_setting, Fold_num, train_x, train_y, test_x, test_y):
+def objective_define(feature_setting, Fold_num, train_x, train_y):
     # CVの等分割を仮定した「1foldあたりの学習データ数（概算）」
     # n_total = int(train_x.shape[0])
     # K = int(Fold_num)
@@ -827,22 +845,34 @@ def objective_define(feature_setting, Fold_num, train_x, train_y, test_x, test_y
 
         #try:
         models, sc_s, pca_s, ICA_s, scores, scores_dist, pred_test, pred_test_dist, feature_name, evals_result_append\
-        = predict_cv(params, feature_setting, Fold_num, train_x, train_y, test_x, test_y)
-        # scoreを格納
-        score_holder_list = scores
+        = predict_cv(params, feature_setting, Fold_num, train_x, train_y)
+        # holdoutは使用せず、trialごとのtrain/CV scoreのみを保存
+        trial.set_user_attr("train_rmse_log10", float(scores[0]))
         cv_mean_score = scores[2]
         #except:
             #たまにICA convert ERRORがでるので、逃げの処理
         #    cv_mean_score=10*10
 
-        global before_score
-        global evals_result_append_best
-        if before_score > cv_mean_score:
-            evals_result_append_best = evals_result_append
-            before_score = cv_mean_score
         return cv_mean_score
 
     return objective
+
+
+def compile_optuna_score_history(study):
+    """Compile train/CV log10 RMSE without exposing holdout scores."""
+    return pd.DataFrame(
+        {
+            "trial": [trial.number for trial in study.trials],
+            "train_rmse_log10": [
+                trial.user_attrs.get("train_rmse_log10", np.nan)
+                for trial in study.trials
+            ],
+            "cv_rmse_log10": [
+                trial.value if trial.value is not None else np.nan
+                for trial in study.trials
+            ],
+        }
+    ).set_index("trial")
 
 
 def print_score(train_mean_score, test_mean_score, cv_mean_score):
@@ -919,26 +949,24 @@ def predict_model(elem, X_use, y, path_all_share, path_figure_all, feature_setti
     ##################################### Initial model construct: CrossVaridationによるアンサンブルモデル作成，Predict，Score
 
     ########################################################################### Optuna optimize
-    # train, CV, and test score compile in this global dataframe 初期化
-    score_holder_define()
-    global before_score # 初期化
-    before_score = 10**10  # 初期化
-    global evals_result_append_best
-    evals_result_append_best={}
     ############################optunaによるベイズ最適化
     study = optuna.create_study() #load_if_exists=False 再度学習する場合，設定を変えている場合がほとんどだから。
-    study.optimize(objective_define(feature_setting, Fold_num, train_x, train_y, test_x, test_y), n_trials=n_trials)
+    study.optimize(objective_define(feature_setting, Fold_num, train_x, train_y), n_trials=n_trials)
 
     #最適化の過程を可視化
-    study_optuna_score = pd.DataFrame(data=score_holder_list, columns=['train', 'cv', 'test'], index=range(0, n_trials))
-    study_optuna_score.plot()
+    study_optuna_score = compile_optuna_score_history(study)
+    study_optuna_score.plot(y=["train_rmse_log10", "cv_rmse_log10"])
     plt.savefig(path_all_share + "/Score_training_optimize.pdf", bbox_inches='tight')
+    plt.savefig(path_all_share + "/Optuna_training_scores.pdf", bbox_inches='tight')
     plt.close()
     plt.show()
 
-    #trialを保存
-    study.trials_dataframe().to_excel(path_all_share + "/Optune_trials.xlsx")
+    # trialを旧ファイル名と修正済みファイル名の両方で保存
+    optuna_trials = study.trials_dataframe()
+    optuna_trials.to_excel(path_all_share + "/Optune_trials.xlsx")
+    optuna_trials.to_excel(path_all_share + "/Optuna_trials.xlsx")
     study_optuna_score.to_excel(path_all_share + "/Optune_trials_ALL_score.xlsx")
+    study_optuna_score.to_excel(path_all_share + "/Optuna_trials_all_scores.xlsx")
     ###best_paramをread
     best_params = study.best_params
     ############################optunaによるベイズ最適化
@@ -964,6 +992,35 @@ def predict_model(elem, X_use, y, path_all_share, path_figure_all, feature_setti
     ##################################### Print score
     #########score 保存
     Score_all.to_excel(path_all_share + "/Score_all.xlsx")
+
+    # 意味とスケールを明示した新しい評価ファイル
+    model_evaluation_scores = pd.Series(
+        {
+            "Default_CV_RMSE_log10": float(Score_all["Default_CV_mean"]),
+            "Default_Holdout_Test_RMSE_log10": float(Score_all["Default_Test_mean"]),
+            "Optuna_Tuning_CV_RMSE_log10": float(Score_all["Optuna_CV_mean"]),
+            "Optuna_Holdout_Test_RMSE_log10": float(Score_all["Optuna_Test_mean"]),
+        },
+        name=elem,
+        dtype=float,
+    )
+    default_test_rmse = float(Score_all["Default_Test_mean"])
+    optuna_test_rmse = float(Score_all["Optuna_Test_mean"])
+    model_evaluation_scores["Optuna_Holdout_Test_RMSE_Improvement_log10"] = default_test_rmse - optuna_test_rmse
+    if default_test_rmse != 0:
+        model_evaluation_scores["Optuna_Holdout_Test_RMSE_Improvement_percent"] = 100.0 * (default_test_rmse - optuna_test_rmse) / default_test_rmse
+    else:
+        model_evaluation_scores["Optuna_Holdout_Test_RMSE_Improvement_percent"] = np.nan
+    if Model_algorithm == "NGBoost":
+        model_evaluation_scores["Default_Train_Predicted_SD_RMS_log10"] = float(Score_all["Default_Train_Dist_mean"])
+        model_evaluation_scores["Default_CV_Predicted_SD_RMS_log10"] = float(Score_all["Default_CV_Dist_mean"])
+        model_evaluation_scores["Optuna_Train_Predicted_SD_RMS_log10"] = float(Score_all["Optuna_Train_Dist_mean"])
+        model_evaluation_scores["Optuna_Tuning_CV_Predicted_SD_RMS_log10"] = float(Score_all["Optuna_CV_Dist_mean"])
+        model_evaluation_scores["Optuna_Holdout_Predicted_SD_RMS_log10"] = float(Score_all["Optuna_Test_Dist_mean"])
+    model_evaluation_scores.to_excel(path_all_share + "/Model_evaluation_scores_log10.xlsx")
+    print("Added evaluation output files:")
+    for output_file_name in ADDED_EVALUATION_OUTPUT_FILES:
+        print("- " + path_all_share + "/" + output_file_name)
     ########################################################################### Model saving
     path_dir_model = path_all_share +"/Models"
     make_dirs(path_dir_model)
@@ -995,7 +1052,7 @@ def predict_model(elem, X_use, y, path_all_share, path_figure_all, feature_setti
         if Model_algorithm == 'LightGBM':
             try:
                 #################################### learning curve
-                lgb.plot_metric(evals_result_append_best[num_importance])
+                lgb.plot_metric(evals_result_append[num_importance])
                 #path
                 path_now_fig_name = "/learning_curve_" + str(num_importance) + ".pdf"
                 #save
@@ -1004,8 +1061,8 @@ def predict_model(elem, X_use, y, path_all_share, path_figure_all, feature_setti
                 plt.show()
 
                 #DataFrameに入れる
-                evals_result_compile['learning_curve_'+str(num_importance)+'_train'] = evals_result_append_best[num_importance]['train']['rmse']
-                evals_result_compile['learning_curve_'+str(num_importance)+'_eval'] = evals_result_append_best[num_importance]['eval']['rmse']
+                evals_result_compile['learning_curve_'+str(num_importance)+'_train'] = evals_result_append[num_importance]['train']['rmse']
+                evals_result_compile['learning_curve_'+str(num_importance)+'_eval'] = evals_result_append[num_importance]['eval']['rmse']
                 #################################### learning curve
 
                 #################################### gain
