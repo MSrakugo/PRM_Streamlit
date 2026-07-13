@@ -610,6 +610,15 @@ def model_predict(feature_setting, model, X_data):
 
     return Y_pred, Y_pred_dist
 
+
+def calculate_ensemble_prediction_and_rmse(test_predictions, test_y):
+    """Average fold predictions and score that same ensemble in log10 space."""
+    pred_test = np.mean(np.asarray(test_predictions, dtype=float), axis=0)
+    y_test = np.asarray(test_y, dtype=float)
+    test_score = np.sqrt(np.mean((pred_test - y_test) ** 2))
+    return pred_test, test_score
+
+
 def predict_cv(params, feature_setting, Fold_num, train_x, train_y, test_x, test_y):
 
     ############ model append list
@@ -621,7 +630,6 @@ def predict_cv(params, feature_setting, Fold_num, train_x, train_y, test_x, test
     ############ model append list
 
     # score append
-    test_score_append = []
     train_score_append = []
     cv_score_append = []
 
@@ -656,7 +664,6 @@ def predict_cv(params, feature_setting, Fold_num, train_x, train_y, test_x, test
         train_x_valid, cv_x = train_x.iloc[train_index], train_x.iloc[cv_index]
         train_y_valid, cv_y = train_y.iloc[train_index], train_y.iloc[cv_index]
         test_x_valid = test_x
-        test_y_valid = test_y
         #Cross_validationによる分離
 
         ###########################################特徴量の設定
@@ -708,11 +715,6 @@ def predict_cv(params, feature_setting, Fold_num, train_x, train_y, test_x, test
         e_tr = p_tr - y_tr
         train_score = np.sqrt(np.mean(e_tr ** 2))
 
-        p_te = np.asarray(predicted_test_y, dtype=float)
-        y_te = test_y_valid.to_numpy(dtype=float)
-        e_te = p_te - y_te
-        test_score = np.sqrt(np.mean(e_te ** 2))
-
         p_cv = np.asarray(predicted_cv_y, dtype=float)
         y_cv = cv_y.to_numpy(dtype=float)
         e_cv = p_cv - y_cv
@@ -731,7 +733,6 @@ def predict_cv(params, feature_setting, Fold_num, train_x, train_y, test_x, test
 
         #スコアを加えていく
         train_score_append.append(train_score)
-        test_score_append.append(test_score)
         cv_score_append.append(cv_score)
 
         #Dist スコアを加えていく ## https://www.statology.org/averaging-standard-deviations/
@@ -739,14 +740,17 @@ def predict_cv(params, feature_setting, Fold_num, train_x, train_y, test_x, test
         test_score_dist_append.append(np.sqrt(np.average((predicted_dist_test_y)**2)))
         cv_score_dist_append.append(np.sqrt(np.average((predicted_dist_cv_y)**2)))
 
-    #テストデータに対する予測値の平均をとる
-    pred_test = np.mean(test_predict_append, axis = 0)
+    # fold予測の平均を最終予測とし、同じ予測値に対してTest RMSEを計算する
+    pred_test, test_score = calculate_ensemble_prediction_and_rmse(
+        test_predict_append,
+        test_y,
+    )
     test_predict_dist_append = pd.DataFrame(test_predict_dist_append)**2 # ２乗
     test_predict_dist_append = test_predict_dist_append.mean()
     pred_test_dist = test_predict_dist_append**(1/2)
 
-    #scoreを平均して返す
-    scores = [np.mean(train_score_append), np.mean(test_score_append), np.mean(cv_score_append)]
+    # Test scoreは、保存・利用される最終アンサンブル予測のlog10 RMSE
+    scores = [np.mean(train_score_append), test_score, np.mean(cv_score_append)]
     scores_dist = [np.mean(train_score_dist_append), np.mean(test_score_dist_append), np.mean(cv_score_dist_append)]
 
     feature_name = train_x_valid.columns
