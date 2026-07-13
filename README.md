@@ -19,7 +19,7 @@ This application not only allows users to **easily handle PRMs** through a user-
 
 ## UPDATE History
 
-Current status: Almost update have already finished (2026/02/01).
+Current status: Almost update have already finished (2026/07/12).
 
 2026/02/01 ver2.1 **Minor Update**: Debag error in major element setting.
 

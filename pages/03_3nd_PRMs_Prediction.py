@@ -238,17 +238,8 @@ else:
     #そのため、Ratioデータについては"_"を末尾につけることで、他元素かつPM normalizationに含まれない元素として例外処理する。
     #例えば、Ti, Nb, Zr, Y, Thの比 → Zr_ という形として記述する
     if Ratio_flag:
-        # "_"の有無で判定
-        ratio_elem_raw_name_list = []
-        ratio_elem_renew_name_list = []
-        for mobile_elem_now in mobile_elem:
-            if "_" in mobile_elem_now:
-                ratio_elem_renew_name_list.append(mobile_elem_now)
-                ratio_elem_raw_name_list.append(mobile_elem_now.replace("_", ""))
-
-        # 生のデータの名前に、_を加える
-        duplicates_df = PM[ratio_elem_raw_name_list].copy()
-        duplicates_df.columns = ratio_elem_renew_name_list
+        # PM前処理後の元元素から、末尾が "_" の目的元素を作成する
+        duplicates_df = construction_PRM.make_ratio_duplicate_columns(PM, mobile_elem)
         PM = pd.concat([PM, duplicates_df], axis=1)
 
     print("######################## Prediction")
@@ -418,7 +409,31 @@ else:
                 file_name=fn,
                 mime="image/png"
             )
+
         ######################################################################## Mobility
+
+    # Ratioモデルで推定した、末尾が "_" の元素の移動度を一覧表示する
+    ratio_mobility_columns = [
+        column
+        for column in element_mobility.columns
+        if column.endswith("_")
+    ]
+    
+    if ratio_mobility_columns:
+        with st.expander("See immobile element mobility"):
+            ratio_element_mobility = element_mobility[ratio_mobility_columns]
+
+            st.markdown("#### Ratio element mobility")
+            st.dataframe(ratio_element_mobility, use_container_width=True)
+
+            st.markdown("#### Mean and variance")
+            ratio_mobility_statistics = pd.DataFrame(
+                {
+                    "Mean": ratio_element_mobility.mean(axis=1),
+                    "Variance": ratio_element_mobility.var(axis=1),
+                }
+            )
+            st.dataframe(ratio_mobility_statistics, use_container_width=True)
 #################################################################################### Visualization
 
 App_Library.page_footer()
