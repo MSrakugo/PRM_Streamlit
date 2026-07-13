@@ -634,6 +634,22 @@ def calculate_ensemble_prediction_and_rmse(test_predictions, test_y):
     return pred_test, test_score
 
 
+def calculate_oof_rmse(oof_predictions, train_y):
+    """Score one out-of-fold prediction per training sample in log10 space."""
+    predictions = np.asarray(oof_predictions, dtype=float)
+    targets = np.asarray(train_y, dtype=float)
+
+    if predictions.shape != targets.shape:
+        raise ValueError("oof_predictions and train_y must have the same shape")
+
+    errors = predictions - targets
+    if not np.all(np.isfinite(errors)):
+        return 1e10
+
+    errors = np.clip(errors, -1e10, 1e10)
+    return np.sqrt(np.mean(errors ** 2))
+
+
 def predict_cv(params, feature_setting, Fold_num, train_x, train_y, test_x=None, test_y=None):
 
     if (test_x is None) != (test_y is None):
@@ -645,12 +661,10 @@ def predict_cv(params, feature_setting, Fold_num, train_x, train_y, test_x=None,
     sc_s = []
     pca_s = []
     ICA_s = []
-    cv_indexes = []
     ############ model append list
 
     # score append
     train_score_append = []
-    cv_score_append = []
 
     # score dist append
     test_score_dist_append = []
@@ -660,7 +674,7 @@ def predict_cv(params, feature_setting, Fold_num, train_x, train_y, test_x=None,
     #predict append
     test_predict_append = []
     train_predict_append = []
-    cv_predict_append = []
+    oof_predictions = np.full(len(train_y), np.nan, dtype=float)
 
     #predicted dist
     test_predict_dist_append = []
@@ -711,8 +725,9 @@ def predict_cv(params, feature_setting, Fold_num, train_x, train_y, test_x=None,
         train_predict_append.append(predicted_train_y)
         if evaluate_holdout:
             test_predict_append.append(predicted_test_y)
-        cv_predict_append.append(predicted_cv_y)
-        cv_indexes.append(cv_y.index)
+        # KFoldの位置indexを使い、各trainサンプルのOOF予測を一度だけ格納する。
+        # DataFrame/Seriesのラベルindexが重複していても復元順には影響しない。
+        oof_predictions[cv_index] = np.asarray(predicted_cv_y, dtype=float)
 
         #predict dist append
         train_predict_dist_append.append(predicted_dist_train_y)
@@ -737,25 +752,10 @@ def predict_cv(params, feature_setting, Fold_num, train_x, train_y, test_x=None,
         e_tr = p_tr - y_tr
         train_score = np.sqrt(np.mean(e_tr ** 2))
 
-        p_cv = np.asarray(predicted_cv_y, dtype=float)
-        y_cv = cv_y.to_numpy(dtype=float)
-        e_cv = p_cv - y_cv
-
-        # 1. NaN や Inf が混じっていないかチェック
-        if not np.all(np.isfinite(e_cv)):
-            cv_score = 1e10  # 異常値がある場合はペナルティ
-        else:
-            # 2. 2乗する前に値を制限してオーバーフローを確実に防ぐ
-            # (1e10の2乗は1e20なので、float64の限界 1e308 に対して十分安全)
-            e_cv_clipped = np.clip(e_cv, -1e10, 1e10)
-            mse_cv = np.mean(e_cv_clipped ** 2)
-            cv_score = np.sqrt(mse_cv)
-        
         ######################################################################
 
         #スコアを加えていく
         train_score_append.append(train_score)
-        cv_score_append.append(cv_score)
 
         #Dist スコアを加えていく ## https://www.statology.org/averaging-standard-deviations/
         train_score_dist_append.append(np.sqrt(np.average((predicted_dist_train_y)**2)))
@@ -778,8 +778,11 @@ def predict_cv(params, feature_setting, Fold_num, train_x, train_y, test_x=None,
         pred_test_dist = test_predict_dist_append**(1/2)
         test_score_dist = np.mean(test_score_dist_append)
 
+    # CV scoreは、全trainサンプルのOOF予測に対して一度だけ計算するlog10 RMSE
+    cv_score = calculate_oof_rmse(oof_predictions, train_y)
+
     # Test scoreは、保存・利用される最終アンサンブル予測のlog10 RMSE
-    scores = [np.mean(train_score_append), test_score, np.mean(cv_score_append)]
+    scores = [np.mean(train_score_append), test_score, cv_score]
     scores_dist = [np.mean(train_score_dist_append), test_score_dist, np.mean(cv_score_dist_append)]
 
     feature_name = train_x_valid.columns
