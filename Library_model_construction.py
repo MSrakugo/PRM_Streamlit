@@ -50,6 +50,12 @@ ADDED_EVALUATION_OUTPUT_FILES = (
     "Optuna_trials.xlsx",
     "Optuna_trials_all_scores.xlsx",
     "Optuna_training_scores.pdf",
+    "Early_stopping_summary.xlsx",
+    "learning_curve_result_compile_default.xlsx",
+    "learning_curve_result_compile_optuna.xlsx",
+    "learning_curve_default_<fold>.pdf",
+    "learning_curve_optuna_<fold>.pdf",
+    "learning_curve_selected_<fold>.pdf",
 )
 
 
@@ -208,12 +214,61 @@ class Model_feature_setting: # feature setting
         self.setting_ICA = setting_ICA
         self.setting_standard_scaler = setting_standard_scaler
 
+class Model_Optimization_Setting:
+    """Shared, replaceable search ranges and early-stopping settings."""
+
+    def __init__(
+        self,
+        lightgbm_search_space=None,
+        ngboost_search_space=None,
+        lightgbm_max_boost_rounds=3000,
+        lightgbm_early_stopping_rounds=100,
+        ngboost_max_estimators=2000,
+        ngboost_early_stopping_rounds=50,
+    ):
+        self.lightgbm_search_space = {
+            "max_depth": (2, 10),
+            "num_leaves": (4, 256),
+            "learning_rate": (0.005, 0.1),
+            "min_data_in_leaf_fraction": (0.0, 0.15),
+            "min_data_in_leaf_minimum": 20,
+            "feature_fraction": (0.5, 1.0),
+            "bagging_fraction": (0.5, 1.0),
+            "lambda_l2": (1e-8, 100.0),
+        }
+        self.ngboost_search_space = {
+            "max_depth": (1, 8),
+            "learning_rate": (0.005, 0.1),
+            "min_samples_leaf_fraction": (0.0, 0.15),
+            "min_samples_leaf_minimum": 8,
+            "minibatch_frac": (0.5, 1.0),
+            "col_sample": (0.5, 1.0),
+        }
+        if lightgbm_search_space is not None:
+            self.lightgbm_search_space.update(lightgbm_search_space)
+        if ngboost_search_space is not None:
+            self.ngboost_search_space.update(ngboost_search_space)
+
+        self.lightgbm_max_boost_rounds = int(lightgbm_max_boost_rounds)
+        self.lightgbm_early_stopping_rounds = int(lightgbm_early_stopping_rounds)
+        self.ngboost_max_estimators = int(ngboost_max_estimators)
+        self.ngboost_early_stopping_rounds = int(ngboost_early_stopping_rounds)
+        if min(
+            self.lightgbm_max_boost_rounds,
+            self.lightgbm_early_stopping_rounds,
+            self.ngboost_max_estimators,
+            self.ngboost_early_stopping_rounds,
+        ) <= 0:
+            raise ValueError("Iteration and early-stopping settings must be positive")
+
+
 class Model_Training_Setting: # Model trainig_Setting
-    def __init__(self, n_trials, Fold_num, test_size, random_state):
+    def __init__(self, n_trials, Fold_num, test_size, random_state, optimization_setting=None):
         self.n_trials = n_trials
         self.Fold_num = Fold_num
         self.test_size = test_size
         self.random_state = random_state
+        self.optimization_setting = optimization_setting or Model_Optimization_Setting()
 ################################################# Define class for model construction
 
 ################################################# Model All Setting Class Define
@@ -531,7 +586,40 @@ def feature_making(feature_setting, train_x, test_x, cv_x):
 ################################################# Feature engeneering
 
 ################################################# Model construction
-def model_construction(feature_setting, params, train_x_valid, train_y_valid, cv_x, cv_y):
+def _ngboost_rmse_monitor(distribution, targets, sample_weight=None):
+    """Evaluate the NGBoost location prediction with the primary log10 RMSE."""
+    locations = np.asarray(distribution.params["loc"], dtype=float)
+    targets = np.asarray(targets, dtype=float)
+    squared_errors = (locations - targets) ** 2
+    if sample_weight is None:
+        return np.sqrt(np.mean(squared_errors))
+    return np.sqrt(np.average(squared_errors, weights=sample_weight))
+
+
+def _restore_ngboost_best_iteration(model):
+    """Remove post-best boosting stages so ordinary saved-model prediction is safe."""
+    actual_iterations = len(model.base_models)
+    best_index = getattr(model, "best_val_loss_itr", None)
+    best_iteration = actual_iterations if best_index is None else int(best_index) + 1
+    best_iteration = max(1, min(best_iteration, actual_iterations))
+
+    for attribute in ("base_models", "scalings", "col_idxs"):
+        values = getattr(model, attribute)
+        setattr(model, attribute, values[:best_iteration])
+    model.n_estimators = best_iteration
+    return best_iteration, actual_iterations
+
+
+def model_construction(
+    feature_setting,
+    params,
+    train_x_valid,
+    train_y_valid,
+    cv_x,
+    cv_y,
+    optimization_setting=None,
+):
+    optimization_setting = optimization_setting or Model_Optimization_Setting()
     #Name read
     Model_algorithm = feature_setting.ML_algorithm_name
     #####################モデルごとに推定をして行く
@@ -548,6 +636,11 @@ def model_construction(feature_setting, params, train_x_valid, train_y_valid, cv
         # コールバックを定義
         callbacks_list = [
             lgb.callback.record_evaluation(evals_result),  # 評価結果を格納するため
+            lgb.early_stopping(
+                stopping_rounds=optimization_setting.lightgbm_early_stopping_rounds,
+                first_metric_only=True,
+                verbose=False,
+            ),
         ]
 
         # verbose_eval の機能を実現 modified ver 250603 for LightGBM 4.0以上に対応
@@ -563,20 +656,40 @@ def model_construction(feature_setting, params, train_x_valid, train_y_valid, cv
                 'objective': 'regression',
                 'metric': 'rmse',
                 'seed': 42,
+                'verbosity': -1,
             }
             model = lgb.train(params,
                             train_set,
+                            num_boost_round=optimization_setting.lightgbm_max_boost_rounds,
                             valid_sets=[train_set, val_set],
                             callbacks=callbacks_list,
                             valid_names=['train', 'eval'])
         else:
             print("param-1")
-            model = lgb.train(params,
+            # study.best_paramsにはOptunaがsuggestした値しか入らないため、
+            # 探索中に使用した固定パラメータを最終再学習でも必ず補完する。
+            lightgbm_params = {
+                "boosting_type": "gbdt",
+                "objective": "regression",
+                "metric": "rmse",
+                "seed": 42,
+                "bagging_freq": 1,
+                "verbosity": -1,
+            }
+            lightgbm_params.update(params)
+            model = lgb.train(lightgbm_params,
                             train_set,
+                            num_boost_round=optimization_setting.lightgbm_max_boost_rounds,
                             valid_sets=[train_set, val_set],
                             callbacks=callbacks_list,
                             valid_names=['train', 'eval'])
         ########### model construct & train
+        model.prm_training_metadata = {
+            "best_iteration": int(model.best_iteration),
+            "stopping_iteration": len(evals_result["eval"]["rmse"]),
+            "max_iteration": optimization_setting.lightgbm_max_boost_rounds,
+            "stopping_metric": "rmse_log10",
+        }
 
     elif Model_algorithm == "NGBoost":
         if params == 0:
@@ -586,25 +699,60 @@ def model_construction(feature_setting, params, train_x_valid, train_y_valid, cv
                 "random_state":0,
                 "verbose":False,
                 "Dist":ngboost.distns.Normal,
+                "n_estimators":optimization_setting.ngboost_max_estimators,
             }
             model = ngboost.NGBRegressor(**params)
-            model.fit(train_x_valid, train_y_valid, X_val=cv_x, Y_val=cv_y,)
+            model.fit(
+                train_x_valid,
+                train_y_valid,
+                X_val=cv_x,
+                Y_val=cv_y,
+                train_loss_monitor=_ngboost_rmse_monitor,
+                val_loss_monitor=_ngboost_rmse_monitor,
+                early_stopping_rounds=optimization_setting.ngboost_early_stopping_rounds,
+            )
         else:
+            min_samples_leaf = params['min_samples_leaf']
             Base_model = DecisionTreeRegressor(criterion='squared_error',\
                 max_depth = params['max_depth'],
-                min_samples_leaf = params['min_samples_leaf'],
-                min_samples_split = params['min_samples_split'],
+                min_samples_leaf = min_samples_leaf,
+                min_samples_split = params.get(
+                    'min_samples_split',
+                    max(2, 2 * min_samples_leaf),
+                ),
                 )
             params = {
                 "Base":Base_model,
                 "random_state":0,
                 "verbose":False,
                 "Dist":ngboost.distns.Normal,
-                "minibatch_frac": params['minibatch_frac']
+                "minibatch_frac": params['minibatch_frac'],
+                "col_sample": params.get('col_sample', 1.0),
+                "learning_rate": params.get('learning_rate', 0.01),
+                "n_estimators":optimization_setting.ngboost_max_estimators,
             }
             model = ngboost.NGBRegressor(**params)
-            model.fit(train_x_valid, train_y_valid, X_val=cv_x, Y_val=cv_y,)
-        evals_result = [model.evals_result['train']['LOGSCORE']]
+            model.fit(
+                train_x_valid,
+                train_y_valid,
+                X_val=cv_x,
+                Y_val=cv_y,
+                train_loss_monitor=_ngboost_rmse_monitor,
+                val_loss_monitor=_ngboost_rmse_monitor,
+                early_stopping_rounds=optimization_setting.ngboost_early_stopping_rounds,
+            )
+        metric_name = next(iter(model.evals_result["train"]))
+        evals_result = {
+            "train": {"rmse": model.evals_result["train"][metric_name]},
+            "eval": {"rmse": model.evals_result["val"][metric_name]},
+        }
+        best_iteration, actual_iterations = _restore_ngboost_best_iteration(model)
+        model.prm_training_metadata = {
+            "best_iteration": best_iteration,
+            "stopping_iteration": actual_iterations,
+            "max_iteration": optimization_setting.ngboost_max_estimators,
+            "stopping_metric": "rmse_log10",
+        }
     #####################モデルごとに推定をして行く
     return model, evals_result
 
@@ -615,7 +763,8 @@ def model_predict(feature_setting, model, X_data):
     Model_algorithm = feature_setting.ML_algorithm_name
     #####################モデルごとに推定をして行く
     if Model_algorithm == "LightGBM":
-        Y_pred =model.predict(X_data) # predict Y
+        best_iteration = getattr(model, "best_iteration", None)
+        Y_pred =model.predict(X_data, num_iteration=best_iteration) # predict Y
         Y_pred_dist=0 # sigmaは出力できないので０を入れておく
 
     elif Model_algorithm == "NGBoost":
@@ -650,11 +799,21 @@ def calculate_oof_rmse(oof_predictions, train_y):
     return np.sqrt(np.mean(errors ** 2))
 
 
-def predict_cv(params, feature_setting, Fold_num, train_x, train_y, test_x=None, test_y=None):
+def predict_cv(
+    params,
+    feature_setting,
+    Fold_num,
+    train_x,
+    train_y,
+    test_x=None,
+    test_y=None,
+    optimization_setting=None,
+):
 
     if (test_x is None) != (test_y is None):
         raise ValueError("test_x and test_y must be provided together")
     evaluate_holdout = test_x is not None
+    optimization_setting = optimization_setting or Model_Optimization_Setting()
 
     ############ model append list
     models = []
@@ -683,6 +842,7 @@ def predict_cv(params, feature_setting, Fold_num, train_x, train_y, test_x=None,
 
     # learning curve append
     evals_result_append = {} #dictionary type
+    training_metadata = []
     num_models = 0
 
     #cross_varidationの設定
@@ -704,7 +864,15 @@ def predict_cv(params, feature_setting, Fold_num, train_x, train_y, test_x=None,
         ###########################################特徴量の設定
 
         ###########################################モデルの作成
-        model, evals_result = model_construction(feature_setting, params, train_x_valid, train_y_valid, cv_x, cv_y)
+        model, evals_result = model_construction(
+            feature_setting,
+            params,
+            train_x_valid,
+            train_y_valid,
+            cv_x,
+            cv_y,
+            optimization_setting=optimization_setting,
+        )
         ###########################################モデルの作成
 
         ########### model append
@@ -713,6 +881,10 @@ def predict_cv(params, feature_setting, Fold_num, train_x, train_y, test_x=None,
         pca_s.append(pca)
         ICA_s.append(ICA)
         evals_result_append[num_models] = evals_result #dictionary type
+        model_metadata = dict(getattr(model, "prm_training_metadata", {}))
+        model_metadata["fold"] = num_models
+        model_metadata["algorithm"] = feature_setting.ML_algorithm_name
+        training_metadata.append(model_metadata)
         ########### model append
 
         #predict
@@ -784,6 +956,7 @@ def predict_cv(params, feature_setting, Fold_num, train_x, train_y, test_x=None,
     # Test scoreは、保存・利用される最終アンサンブル予測のlog10 RMSE
     scores = [np.mean(train_score_append), test_score, cv_score]
     scores_dist = [np.mean(train_score_dist_append), test_score_dist, np.mean(cv_score_dist_append)]
+    evals_result_append["_training_metadata"] = training_metadata
 
     feature_name = train_x_valid.columns
 
@@ -793,62 +966,107 @@ def predict_cv(params, feature_setting, Fold_num, train_x, train_y, test_x=None,
 
 ################################################################################################ Parameter tuning
 
+def _fractional_integer_bounds(sample_count, fractions, minimum, maximum):
+    lower = max(minimum, int(np.ceil(sample_count * fractions[0])))
+    upper = max(lower, int(np.ceil(sample_count * fractions[1])))
+    upper = min(upper, maximum)
+    lower = min(lower, upper)
+    return lower, upper
+
+
+def suggest_model_params(trial, model_algorithm, fold_train_size, optimization_setting=None):
+    """Create valid, regularized Optuna parameters from replaceable settings."""
+    optimization_setting = optimization_setting or Model_Optimization_Setting()
+    fold_train_size = max(2, int(fold_train_size))
+
+    if model_algorithm == "LightGBM":
+        space = optimization_setting.lightgbm_search_space
+        max_depth = trial.suggest_int("max_depth", *space["max_depth"])
+        leaf_upper = max(1, min(space["num_leaves"][1], 2 ** max_depth))
+        leaf_lower = min(max(1, space["num_leaves"][0]), leaf_upper)
+        min_data_lower, min_data_upper = _fractional_integer_bounds(
+            fold_train_size,
+            space["min_data_in_leaf_fraction"],
+            minimum=space["min_data_in_leaf_minimum"],
+            maximum=max(1, fold_train_size // 2),
+        )
+        return {
+            "boosting_type": "gbdt",
+            "objective": "regression",
+            "metric": "rmse",
+            "seed": 42,
+            "verbosity": -1,
+            "max_depth": max_depth,
+            "num_leaves": trial.suggest_int("num_leaves", leaf_lower, leaf_upper),
+            "learning_rate": trial.suggest_float(
+                "learning_rate", *space["learning_rate"], log=True
+            ),
+            "min_data_in_leaf": trial.suggest_int(
+                "min_data_in_leaf", min_data_lower, min_data_upper
+            ),
+            "feature_fraction": trial.suggest_float(
+                "feature_fraction", *space["feature_fraction"]
+            ),
+            "bagging_fraction": trial.suggest_float(
+                "bagging_fraction", *space["bagging_fraction"]
+            ),
+            "bagging_freq": 1,
+            "lambda_l1": 0.0,
+            "lambda_l2": trial.suggest_float("lambda_l2", *space["lambda_l2"], log=True),
+        }
+
+    if model_algorithm == "NGBoost":
+        space = optimization_setting.ngboost_search_space
+        leaf_lower, leaf_upper = _fractional_integer_bounds(
+            fold_train_size,
+            space["min_samples_leaf_fraction"],
+            minimum=space["min_samples_leaf_minimum"],
+            maximum=max(1, fold_train_size // 2),
+        )
+        min_samples_leaf = trial.suggest_int(
+            "min_samples_leaf", leaf_lower, leaf_upper
+        )
+        return {
+            "max_depth": trial.suggest_int("max_depth", *space["max_depth"]),
+            "min_samples_leaf": min_samples_leaf,
+            "min_samples_split": min(fold_train_size, max(2, 2 * min_samples_leaf)),
+            "learning_rate": trial.suggest_float(
+                "learning_rate", *space["learning_rate"], log=True
+            ),
+            "minibatch_frac": trial.suggest_float(
+                "minibatch_frac", *space["minibatch_frac"]
+            ),
+            "col_sample": trial.suggest_float("col_sample", *space["col_sample"]),
+        }
+
+    raise ValueError("Unsupported model algorithm: " + str(model_algorithm))
+
+
 ########### if文入れると遅くなるので、改良する必要あり→そこまで影響ないかも？
-def objective_define(feature_setting, Fold_num, train_x, train_y):
-    # CVの等分割を仮定した「1foldあたりの学習データ数（概算）」
-    # n_total = int(train_x.shape[0])
-    # K = int(Fold_num)
-    # n_train_fold = max(1, int(n_total * (K - 1) / K))  # = train_x.shape[0]/Fold_num*(Fold_num-1)
+def objective_define(feature_setting, Fold_num, train_x, train_y, optimization_setting=None):
+    optimization_setting = optimization_setting or Model_Optimization_Setting()
+    fold_train_size = max(2, int(len(train_x) * (Fold_num - 1) / Fold_num))
 
     def objective(trial):
         ### parameter selection for model
         Model_algorithm = feature_setting.ML_algorithm_name
-        if Model_algorithm == "LightGBM":
-            params = {
-                # 基本パラメータ
-                'boosting_type': 'gbdt',
-                'objective': 'regression',
-                'metric': 'rmse',
-                'seed': 42,
-
-                # 学習用基本パラメータ
-
-                # Matsuno+ 2022で探索されているパラメータ探索範囲
-                # 'num_leaves' : trial.suggest_int('num_leaves', 8, 128),
-                # 'max_depth' : trial.suggest_int('max_depth', 2, 10),
-                # 'min_data_in_leaf' : trial.suggest_int('min_data_in_leaf', 75, 500),
-
-                # 20260204に調整したパラメータ探索範囲
-                'num_leaves' : trial.suggest_int('num_leaves', 32, 256),
-                'max_depth' : trial.suggest_int('max_depth', 7, 14),
-                'min_data_in_leaf' : trial.suggest_int('min_data_in_leaf', 20, 300),
-
-                #'max_bin' : trial.suggest_int('max_bin', 100, 300),
-                #'learning_rate' : trial.suggest_loguniform('learning_rate', 0.05, 0.5),
-                #'lambda_l1' : trial.suggest_loguniform('lambda_l1', 1e-8, 10.0),
-                #'lambda_l2' : trial.suggest_loguniform('lambda_l2', 1e-8, 10.0),
-                #'feature_fraction' : trial.suggest_uniform('feature_fraction', 0.4, 1.0),
-                #'bagging_fraction' : trial.suggest_uniform('bagging_fraction', 0.4, 1.0),
-                #'bagging_freq' : trial.suggest_int('bagging_freq', 1, 7),
-            }
-        elif Model_algorithm == "NGBoost":
-            params = {
-                # Matsuno+ 2025で探索されているパラメータ探索範囲
-                # "max_depth" : trial.suggest_int('max_depth', 2, 10),
-                # "min_samples_leaf":trial.suggest_int('min_samples_leaf', 8, 128),
-                # "min_samples_split": trial.suggest_int('min_samples_split', 75, 500),
-
-                "max_depth" : trial.suggest_int('max_depth', 4 , 14),
-                "min_samples_leaf":trial.suggest_int('min_samples_leaf', 32, 256),
-                "min_samples_split": trial.suggest_int('min_samples_split', 20, 300),
-                
-                # "minibatch_frac": trial.suggest_float('minibatch_frac', 1E-16, 1.0)
-                "minibatch_frac": trial.suggest_float('minibatch_frac', 0.1, 1.0),
-            }
+        params = suggest_model_params(
+            trial,
+            Model_algorithm,
+            fold_train_size,
+            optimization_setting,
+        )
 
         #try:
         models, sc_s, pca_s, ICA_s, scores, scores_dist, pred_test, pred_test_dist, feature_name, evals_result_append\
-        = predict_cv(params, feature_setting, Fold_num, train_x, train_y)
+        = predict_cv(
+            params,
+            feature_setting,
+            Fold_num,
+            train_x,
+            train_y,
+            optimization_setting=optimization_setting,
+        )
         # holdoutは使用せず、trialごとのtrain/CV scoreのみを保存
         trial.set_user_attr("train_rmse_log10", float(scores[0]))
         cv_mean_score = scores[2]
@@ -890,6 +1108,113 @@ def print_score_std(train_mean_score, test_mean_score, cv_mean_score):
     print("テスト・平均スコア　std (NGBoost)：　" + str(test_mean_score))
     print("CV・平均スコア　std (NGBoost)：　" + str(cv_mean_score))
 
+
+def calculate_generalization_gaps(scores):
+    """Separate model-complexity and holdout-distribution gaps."""
+    train_rmse, holdout_rmse, oof_rmse = [float(value) for value in scores]
+    return {
+        "Train_to_OOF_Gap_log10": oof_rmse - train_rmse,
+        "OOF_to_Holdout_Gap_log10": holdout_rmse - oof_rmse,
+    }
+
+
+def select_model_phase(default_scores, optuna_scores):
+    """Select by OOF RMSE only; never use holdout performance for model choice."""
+    default_oof = float(default_scores[2])
+    optuna_oof = float(optuna_scores[2])
+    if np.isfinite(optuna_oof) and (
+        not np.isfinite(default_oof) or optuna_oof < default_oof
+    ):
+        return "Optuna"
+    return "Default"
+
+
+def compile_early_stopping_summary(default_evals, optuna_evals):
+    """Compile fold-level stopping metadata for both training phases."""
+    rows = []
+    for phase, evals in (("Default", default_evals), ("Optuna", optuna_evals)):
+        for metadata in evals.get("_training_metadata", []):
+            row = {"phase": phase}
+            row.update(metadata)
+            rows.append(row)
+    columns = [
+        "phase",
+        "algorithm",
+        "fold",
+        "best_iteration",
+        "stopping_iteration",
+        "max_iteration",
+        "stopping_metric",
+    ]
+    return pd.DataFrame(rows, columns=columns)
+
+
+def compile_learning_curve_results(evals_result_append):
+    """Compile train/eval histories even when folds stop at different iterations."""
+    learning_curve_series = {}
+    fold_numbers = sorted(key for key in evals_result_append if isinstance(key, int))
+    for fold_number in fold_numbers:
+        fold_result = evals_result_append[fold_number]
+        for dataset_name in ("train", "eval"):
+            if dataset_name not in fold_result:
+                continue
+            metric_values = next(iter(fold_result[dataset_name].values()))
+            column_name = f"learning_curve_{fold_number}_{dataset_name}"
+            learning_curve_series[column_name] = pd.Series(
+                metric_values,
+                dtype=float,
+            )
+    # 列を逐次追加すると最初のfoldのindexへ揃えられ、長いfoldの末尾が
+    # 切り捨てられるため、全Seriesを集めてから最長indexで一括生成する。
+    return pd.DataFrame(learning_curve_series)
+
+
+def save_learning_curve_figures(
+    evals_result_append,
+    path_figure_all,
+    phase_name,
+    keep_legacy_names=False,
+):
+    """Plot each fold history and mark the restored best iteration."""
+    metadata_by_fold = {
+        item.get("fold"): item
+        for item in evals_result_append.get("_training_metadata", [])
+    }
+    fold_numbers = sorted(key for key in evals_result_append if isinstance(key, int))
+    for fold_number in fold_numbers:
+        fold_result = evals_result_append[fold_number]
+        fig, axis = plt.subplots()
+        for dataset_name in ("train", "eval"):
+            if dataset_name not in fold_result:
+                continue
+            metric_values = next(iter(fold_result[dataset_name].values()))
+            iterations = np.arange(1, len(metric_values) + 1)
+            axis.plot(iterations, metric_values, label=dataset_name)
+
+        metadata = metadata_by_fold.get(fold_number, {})
+        best_iteration = metadata.get("best_iteration")
+        if best_iteration is not None:
+            axis.axvline(
+                best_iteration,
+                color="black",
+                linestyle="--",
+                label=f"best iteration = {best_iteration}",
+            )
+        axis.set_xlabel("Boosting iteration")
+        axis.set_ylabel(metadata.get("stopping_metric", "validation metric"))
+        axis.set_title(f"{phase_name} fold {fold_number}")
+        axis.legend()
+        fig.savefig(
+            path_figure_all + f"/learning_curve_{phase_name.lower()}_{fold_number}.pdf",
+            bbox_inches="tight",
+        )
+        if keep_legacy_names:
+            fig.savefig(
+                path_figure_all + f"/learning_curve_{fold_number}.pdf",
+                bbox_inches="tight",
+            )
+        plt.close(fig)
+
 ################################################################################################ Parameter tuning
 
 ################################################################################################ Model construction Main + Pickle
@@ -915,6 +1240,11 @@ def predict_model(elem, X_use, y, path_all_share, path_figure_all, feature_setti
     Fold_num = Model_Training_Setting.Fold_num ### model numbers (ensemble)
     test_size= Model_Training_Setting.test_size ### test size → 80% training, 20% test
     random_state = Model_Training_Setting.random_state ### define random state
+    optimization_setting = getattr(
+        Model_Training_Setting,
+        "optimization_setting",
+        Model_Optimization_Setting(),
+    )
     Model_algorithm = feature_setting.ML_algorithm_name
     ##################################### Training settings
 
@@ -934,7 +1264,26 @@ def predict_model(elem, X_use, y, path_all_share, path_figure_all, feature_setti
     ##################################### Initial model construct: CrossVaridationによるアンサンブルモデル作成，Predict，Score
     params = 0
     models, sc_s, pca_s, ICA_s, scores, scores_dist, pred_test, pred_test_dist, feature_name, evals_result_append \
-    = predict_cv(params, feature_setting, Fold_num, train_x, train_y, test_x, test_y)
+    = predict_cv(
+        params,
+        feature_setting,
+        Fold_num,
+        train_x,
+        train_y,
+        test_x,
+        test_y,
+        optimization_setting,
+    )
+    default_scores = list(scores)
+    default_scores_dist = list(scores_dist)
+    default_models = models
+    default_sc_s = sc_s
+    default_pca_s = pca_s
+    default_ICA_s = ICA_s
+    default_pred_test = pred_test
+    default_pred_test_dist = pred_test_dist
+    default_feature_name = feature_name
+    default_evals_result_append = evals_result_append
     ##################################### Print score
     #print_score
     print("########### Default")
@@ -954,7 +1303,16 @@ def predict_model(elem, X_use, y, path_all_share, path_figure_all, feature_setti
     ########################################################################### Optuna optimize
     ############################optunaによるベイズ最適化
     study = optuna.create_study() #load_if_exists=False 再度学習する場合，設定を変えている場合がほとんどだから。
-    study.optimize(objective_define(feature_setting, Fold_num, train_x, train_y), n_trials=n_trials)
+    study.optimize(
+        objective_define(
+            feature_setting,
+            Fold_num,
+            train_x,
+            train_y,
+            optimization_setting,
+        ),
+        n_trials=n_trials,
+    )
 
     #最適化の過程を可視化
     study_optuna_score = compile_optuna_score_history(study)
@@ -976,7 +1334,19 @@ def predict_model(elem, X_use, y, path_all_share, path_figure_all, feature_setti
 
     #########################optunaによるベイズ最適化されたparamで計算
     models, sc_s, pca_s, ICA_s, scores, scores_dist, pred_test, pred_test_dist, feature_name, evals_result_append\
-    = predict_cv(best_params, feature_setting, Fold_num, train_x, train_y, test_x, test_y)
+    = predict_cv(
+        best_params,
+        feature_setting,
+        Fold_num,
+        train_x,
+        train_y,
+        test_x,
+        test_y,
+        optimization_setting,
+    )
+    optuna_scores = list(scores)
+    optuna_scores_dist = list(scores_dist)
+    optuna_evals_result_append = evals_result_append
     #########################optunaによるベイズ最適化されたparamで計算
     ########################################################################### Optuna optimize
 
@@ -984,25 +1354,57 @@ def predict_model(elem, X_use, y, path_all_share, path_figure_all, feature_setti
     #print_score
     print("########### Optuna_tuned")
     #トレーニングの平均スコアを格納
-    Score_all["Optuna_Train_mean"] = scores[0]
-    Score_all["Optuna_Train_Dist_mean"] = scores_dist[0]
-    Score_all["Optuna_Test_mean"] = scores[1]
-    Score_all["Optuna_Test_Dist_mean"] = scores_dist[1]
-    Score_all["Optuna_CV_mean"] = scores[2]
-    Score_all["Optuna_CV_Dist_mean"] = scores_dist[2]
-    print_score(scores[0], scores[1], scores[2])
-    print_score_std(scores_dist[0], scores_dist[1], scores_dist[2])
+    Score_all["Optuna_Train_mean"] = optuna_scores[0]
+    Score_all["Optuna_Train_Dist_mean"] = optuna_scores_dist[0]
+    Score_all["Optuna_Test_mean"] = optuna_scores[1]
+    Score_all["Optuna_Test_Dist_mean"] = optuna_scores_dist[1]
+    Score_all["Optuna_CV_mean"] = optuna_scores[2]
+    Score_all["Optuna_CV_Dist_mean"] = optuna_scores_dist[2]
+    print_score(optuna_scores[0], optuna_scores[1], optuna_scores[2])
+    print_score_std(optuna_scores_dist[0], optuna_scores_dist[1], optuna_scores_dist[2])
     ##################################### Print score
+
+    # holdoutを参照せず、OOF RMSEが小さい方だけを最終保存・予測に採用する
+    selected_model_phase = select_model_phase(default_scores, optuna_scores)
+    if selected_model_phase == "Default":
+        models = default_models
+        sc_s = default_sc_s
+        pca_s = default_pca_s
+        ICA_s = default_ICA_s
+        scores = default_scores
+        scores_dist = default_scores_dist
+        pred_test = default_pred_test
+        pred_test_dist = default_pred_test_dist
+        feature_name = default_feature_name
+        evals_result_append = default_evals_result_append
+    else:
+        scores = optuna_scores
+        scores_dist = optuna_scores_dist
+        evals_result_append = optuna_evals_result_append
+
+    Score_all["Selected_Model"] = selected_model_phase
+    Score_all["Selected_Train_mean"] = scores[0]
+    Score_all["Selected_Test_mean"] = scores[1]
+    Score_all["Selected_CV_mean"] = scores[2]
+    print("Selected model by OOF RMSE: " + selected_model_phase)
     #########score 保存
     Score_all.to_excel(path_all_share + "/Score_all.xlsx")
 
     # 意味とスケールを明示した新しい評価ファイル
     model_evaluation_scores = pd.Series(
         {
+            "Default_Train_RMSE_log10": float(Score_all["Default_Train_mean"]),
             "Default_CV_RMSE_log10": float(Score_all["Default_CV_mean"]),
+            "Default_OOF_RMSE_log10": float(Score_all["Default_CV_mean"]),
             "Default_Holdout_Test_RMSE_log10": float(Score_all["Default_Test_mean"]),
+            "Optuna_Train_RMSE_log10": float(Score_all["Optuna_Train_mean"]),
             "Optuna_Tuning_CV_RMSE_log10": float(Score_all["Optuna_CV_mean"]),
+            "Optuna_OOF_RMSE_log10": float(Score_all["Optuna_CV_mean"]),
             "Optuna_Holdout_Test_RMSE_log10": float(Score_all["Optuna_Test_mean"]),
+            "Selected_Model_Is_Optuna": float(selected_model_phase == "Optuna"),
+            "Selected_Train_RMSE_log10": float(scores[0]),
+            "Selected_OOF_RMSE_log10": float(scores[2]),
+            "Selected_Holdout_Test_RMSE_log10": float(scores[1]),
         },
         name=elem,
         dtype=float,
@@ -1014,6 +1416,15 @@ def predict_model(elem, X_use, y, path_all_share, path_figure_all, feature_setti
         model_evaluation_scores["Optuna_Holdout_Test_RMSE_Improvement_percent"] = 100.0 * (default_test_rmse - optuna_test_rmse) / default_test_rmse
     else:
         model_evaluation_scores["Optuna_Holdout_Test_RMSE_Improvement_percent"] = np.nan
+    default_gaps = calculate_generalization_gaps(default_scores)
+    optuna_gaps = calculate_generalization_gaps(optuna_scores)
+    selected_gaps = calculate_generalization_gaps(scores)
+    for gap_name, gap_value in default_gaps.items():
+        model_evaluation_scores["Default_" + gap_name] = gap_value
+    for gap_name, gap_value in optuna_gaps.items():
+        model_evaluation_scores["Optuna_" + gap_name] = gap_value
+    for gap_name, gap_value in selected_gaps.items():
+        model_evaluation_scores["Selected_" + gap_name] = gap_value
     if Model_algorithm == "NGBoost":
         model_evaluation_scores["Default_Train_Predicted_SD_RMS_log10"] = float(Score_all["Default_Train_Dist_mean"])
         model_evaluation_scores["Default_CV_Predicted_SD_RMS_log10"] = float(Score_all["Default_CV_Dist_mean"])
@@ -1021,6 +1432,14 @@ def predict_model(elem, X_use, y, path_all_share, path_figure_all, feature_setti
         model_evaluation_scores["Optuna_Tuning_CV_Predicted_SD_RMS_log10"] = float(Score_all["Optuna_CV_Dist_mean"])
         model_evaluation_scores["Optuna_Holdout_Predicted_SD_RMS_log10"] = float(Score_all["Optuna_Test_Dist_mean"])
     model_evaluation_scores.to_excel(path_all_share + "/Model_evaluation_scores_log10.xlsx")
+    early_stopping_summary = compile_early_stopping_summary(
+        default_evals_result_append,
+        optuna_evals_result_append,
+    )
+    early_stopping_summary.to_excel(
+        path_all_share + "/Early_stopping_summary.xlsx",
+        index=False,
+    )
     print("Added evaluation output files:")
     for output_file_name in ADDED_EVALUATION_OUTPUT_FILES:
         print("- " + path_all_share + "/" + output_file_name)
@@ -1049,25 +1468,35 @@ def predict_model(elem, X_use, y, path_all_share, path_figure_all, feature_setti
     num_importance = 1
     importance_compile_gain = pd.DataFrame()
     importance_compile_split = pd.DataFrame()
-    evals_result_compile = pd.DataFrame()
+    default_evals_result_compile = compile_learning_curve_results(
+        default_evals_result_append
+    )
+    optuna_evals_result_compile = compile_learning_curve_results(
+        optuna_evals_result_append
+    )
+    selected_evals_result_compile = compile_learning_curve_results(
+        evals_result_append
+    )
+    save_learning_curve_figures(
+        default_evals_result_append,
+        path_figure_all,
+        "Default",
+    )
+    save_learning_curve_figures(
+        optuna_evals_result_append,
+        path_figure_all,
+        "Optuna",
+    )
+    save_learning_curve_figures(
+        evals_result_append,
+        path_figure_all,
+        "Selected",
+        keep_legacy_names=True,
+    )
 
     for best_model in model_all.model:
         if Model_algorithm == 'LightGBM':
             try:
-                #################################### learning curve
-                lgb.plot_metric(evals_result_append[num_importance])
-                #path
-                path_now_fig_name = "/learning_curve_" + str(num_importance) + ".pdf"
-                #save
-                plt.savefig(path_figure_all + path_now_fig_name, bbox_inches='tight')
-                plt.close()
-                plt.show()
-
-                #DataFrameに入れる
-                evals_result_compile['learning_curve_'+str(num_importance)+'_train'] = evals_result_append[num_importance]['train']['rmse']
-                evals_result_compile['learning_curve_'+str(num_importance)+'_eval'] = evals_result_append[num_importance]['eval']['rmse']
-                #################################### learning curve
-
                 #################################### gain
                 importances = pd.Series(best_model.feature_importance(importance_type="gain"), index = feature_name)
                 #DataFrameに入れる
@@ -1104,7 +1533,14 @@ def predict_model(elem, X_use, y, path_all_share, path_figure_all, feature_setti
     # save importance
     importance_compile_gain.to_excel(path_all_share + "/feature_importance_gain.xlsx")
     importance_compile_split.to_excel(path_all_share + "/feature_importance_split.xlsx")
-    evals_result_compile.to_excel(path_all_share + "/learning_curve_result_compile.xlsx")
+    # 既存名は最終選択モデルの履歴として維持し、Default/Optunaも別名で保存する
+    selected_evals_result_compile.to_excel(path_all_share + "/learning_curve_result_compile.xlsx")
+    default_evals_result_compile.to_excel(
+        path_all_share + "/learning_curve_result_compile_default.xlsx"
+    )
+    optuna_evals_result_compile.to_excel(
+        path_all_share + "/learning_curve_result_compile_optuna.xlsx"
+    )
     ################################################################パラメータ・特徴量
 
     ########################################関数の定義
